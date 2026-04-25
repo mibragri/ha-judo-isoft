@@ -36,8 +36,11 @@ DEVICE_TYPES = {
     0x42: "Softwell S",
     0x43: "Softwell KS",
     0x44: "Softwell C",
-    0x67: "i-soft K",
-    0x68: "i-soft K SAFE+",
+    # Verified against device display: 0x67 reports "i-soft K SAFE+" (and
+    # presumably plain "i-soft K" too — the firmware does not seem to
+    # distinguish via this register). Adjust if your device proves otherwise.
+    0x67: "i-soft K / SAFE+",
+    0x68: "i-soft K (alt code)",
     0x69: "i-soft TGA",
     0x72: "i-soft Pro",
     0x73: "i-soft Pro SAFE+",

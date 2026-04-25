@@ -118,9 +118,12 @@ class JudoApi:
 
     async def get_software_version(self) -> str:
         data = await self._request("GET", REG_SW_VERSION)
-        # Format: "MMmmpp" -> "MM.mm.pp"
+        # Format on i-soft K (verified against device display "4.01"):
+        #   byte 2 = major, byte 1 = minor (zero-padded), byte 0 = build/patch
         if len(data) >= 6:
-            return f"{int(data[0:2], 16)}.{int(data[2:4], 16)}.{int(data[4:6], 16)}"
+            major = int(data[4:6], 16)
+            minor = int(data[2:4], 16)
+            return f"{major}.{minor:02d}"
         return data
 
     async def get_installation_date(self) -> datetime | None:
@@ -155,12 +158,13 @@ class JudoApi:
 
     async def get_total_water(self) -> float:
         data = await self._request("GET", REG_TOTAL_WATER)
-        # 4 LE bytes in mL -> m³
-        return self._hex_le_int(data) / 1_000_000
+        # 4 LE bytes; divisor /1000 matches the JU-Control display unit "m³"
+        # (the device counter unit is effectively L; the App labels it as m³)
+        return self._hex_le_int(data) / 1000
 
     async def get_soft_water(self) -> float:
         data = await self._request("GET", REG_SOFT_WATER)
-        return self._hex_le_int(data) / 1_000_000
+        return self._hex_le_int(data) / 1000
 
     async def get_operating_time(self) -> dict[str, int]:
         data = await self._request("GET", REG_OPERATING_HOURS)
