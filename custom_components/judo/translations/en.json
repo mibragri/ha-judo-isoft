@@ -33,7 +33,7 @@
       "salt_level": { "name": "Salt level" },
       "total_water": { "name": "Total water" },
       "soft_water": { "name": "Soft water" },
-      "operating_days": { "name": "Operating days" },
+      "operating_time": { "name": "Operating time" },
       "daily_water": { "name": "Daily water consumption" },
       "installation_date": { "name": "Installation date" }
     },

@@ -34,6 +34,7 @@ class JudoData:
     operating_minutes: int | None = None
     operating_hours: int | None = None
     operating_days: int | None = None
+    operating_text: str | None = None
     daily_total_l: int | None = None
     daily_hourly_l: list[int] | None = None
     last_full_refresh: datetime | None = None
@@ -103,6 +104,9 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
             data.operating_minutes = op["minutes"]
             data.operating_hours = op["hours"]
             data.operating_days = op["days"]
+            data.operating_text = (
+                f"{op['days']} Tage, {op['hours']} h, {op['minutes']} min"
+            )
             stats = await self.api.get_daily_stats()
             data.daily_total_l = stats.get("total")
             data.daily_hourly_l = stats.get("hourly")

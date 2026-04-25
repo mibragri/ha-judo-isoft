@@ -62,11 +62,11 @@ SENSORS: tuple[JudoSensorDescription, ...] = (
         suggested_display_precision=2,
     ),
     JudoSensorDescription(
-        key="operating_days",
-        translation_key="operating_days",
-        native_unit_of_measurement=UnitOfTime.DAYS,
-        state_class=SensorStateClass.TOTAL_INCREASING,
-        value_fn=lambda d: d.operating_days,
+        key="operating_time",
+        translation_key="operating_time",
+        value_fn=lambda d: d.operating_text,
+        # Geräte-Counter, Bedeutung modellabhängig (s. README)
+        entity_registry_enabled_default=True,
     ),
     JudoSensorDescription(
         key="daily_water",

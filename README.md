@@ -40,6 +40,9 @@ Custom component für Judo Connectivity-Module (i-soft, Softwell, i-soft Pro u.a
 - Reagiert nur auf HTTP, HTTPS leitet auf HTTP-Root um
 - Rate-Limit: ca. 10 s Pause zwischen API-Aufrufen, sonst kommen leere Antworten
 - Web-UI und API teilen sich denselben Auth-Cache
+- **Betriebszeit-Counter (`/api/rest/2500`)** liefert oft Werte, die nicht zur tatsächlichen Nutzungsdauer passen — vermutlich Werks-Vortest-Stunden oder ein anderer interner Zähler. Die Integration zeigt genau, was das Gerät meldet (Format "Tage, h, min"); Diskrepanz zur Realität bitte mit dem Geräte-Display vergleichen.
+- **Inbetriebnahmedatum (`/api/rest/0E00`)** liefert auf einigen Modellen (z.B. i-soft K) keinen sinnvollen Unix-Timestamp. Werte vor 2000 oder in der Zukunft werden verworfen → Sensor bleibt `unknown`.
+- **Salzstand (`/api/rest/5600`)** sind 4 Bytes, davon nur die ersten 2 das Gewicht in g (Big-Endian). Die hinteren 2 Bytes sind reserviert oder modellabhängig (Reichweite in Tagen?).
 
 ## Lizenz
 

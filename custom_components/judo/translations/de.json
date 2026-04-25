@@ -33,7 +33,7 @@
       "salt_level": { "name": "Salzvorrat" },
       "total_water": { "name": "Gesamtwassermenge" },
       "soft_water": { "name": "Weichwassermenge" },
-      "operating_days": { "name": "Betriebstage" },
+      "operating_time": { "name": "Betriebszeit" },
       "daily_water": { "name": "Tagesverbrauch" },
       "installation_date": { "name": "Inbetriebnahmedatum" }
     },
