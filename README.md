@@ -79,7 +79,7 @@ If the module is brand new and not yet on your network:
 - **Rate limit**: requests less than ~10 s apart return empty bodies. The integration enforces an 11 s gap.
 - **Installation date** (`/api/rest/0E00`) returns junk on some models (e.g. i-soft K). Values outside `[2000, now+1d]` are discarded → sensor stays `unknown`.
 - **Salt level** (`/api/rest/5600`) is 4 bytes total: bytes 0–1 are weight in grams (big-endian), bytes 2–3 are remaining range in days (little-endian).
-- **Operating time** (`/api/rest/2500`) sometimes reports values that don't match real-world usage (likely factory burn-in test hours retained from before shipping). The integration shows the raw `Xd Yh Zmin` string, identical to the device display.
+- **Operating time** (`/api/rest/2500`) and **installation date** (`/api/rest/0E00`) are **firmware-build counters**, not user-installation counters. Verified empirically: `operating_time` in days exactly equals the calendar-day delta between today and `installation_date`. The Judo device counts from firmware compile date (e.g. 2017-05-13 for V4.01), regardless of when you actually unboxed and wired it up. Don't expect these values to reflect time since you installed the unit — for that you need to track the install date yourself.
 - **Write actions** (regeneration, leakage protection toggle, vacation mode) don't return a confirmed switch state. The integration caches the last requested state locally.
 
 ## Supported models
