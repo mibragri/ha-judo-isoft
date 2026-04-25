@@ -1,4 +1,4 @@
-"""Switches (zustandsbehaftete Aktionen)."""
+"""Switch entities (stateful actions)."""
 from __future__ import annotations
 
 import logging
@@ -30,8 +30,8 @@ async def async_setup_entry(
 
 
 class _JudoSwitchBase(SwitchEntity):
-    """Basis: HA hat keinen Read-Zustand für diese Schalter, daher
-    halten wir den letzten gewünschten Zustand selbst."""
+    """Base class: the API does not expose a current state for these
+    switches, so we cache the last requested state locally."""
 
     _attr_has_entity_name = True
 
@@ -57,7 +57,7 @@ class JudoLeakageProtectionSwitch(_JudoSwitchBase):
         try:
             await self._coordinator.api.set_leakage_protection(True)
         except JudoApiError as err:
-            _LOGGER.error("Leckageschutz aktivieren: %s", err)
+            _LOGGER.error("enabling leakage protection failed: %s", err)
             return
         self._is_on = True
         self.async_write_ha_state()
@@ -66,7 +66,7 @@ class JudoLeakageProtectionSwitch(_JudoSwitchBase):
         try:
             await self._coordinator.api.set_leakage_protection(False)
         except JudoApiError as err:
-            _LOGGER.error("Leckageschutz deaktivieren: %s", err)
+            _LOGGER.error("disabling leakage protection failed: %s", err)
             return
         self._is_on = False
         self.async_write_ha_state()
@@ -83,7 +83,7 @@ class JudoVacationModeSwitch(_JudoSwitchBase):
         try:
             await self._coordinator.api.set_vacation_mode(True)
         except JudoApiError as err:
-            _LOGGER.error("Urlaubsmodus aktivieren: %s", err)
+            _LOGGER.error("enabling vacation mode failed: %s", err)
             return
         self._is_on = True
         self.async_write_ha_state()
@@ -92,7 +92,7 @@ class JudoVacationModeSwitch(_JudoSwitchBase):
         try:
             await self._coordinator.api.set_vacation_mode(False)
         except JudoApiError as err:
-            _LOGGER.error("Urlaubsmodus deaktivieren: %s", err)
+            _LOGGER.error("disabling vacation mode failed: %s", err)
             return
         self._is_on = False
         self.async_write_ha_state()

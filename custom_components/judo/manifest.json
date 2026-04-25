@@ -1,6 +1,6 @@
 {
   "domain": "judo",
-  "name": "Judo Wasseraufbereitung",
+  "name": "JUDO Water Treatment",
   "codeowners": ["@mibragri"],
   "config_flow": true,
   "documentation": "https://github.com/mibragri/ha-judo-isoft",

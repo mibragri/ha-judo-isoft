@@ -1,5 +1,5 @@
 {
-  "name": "Judo Wasseraufbereitung",
+  "name": "JUDO Water Treatment",
   "render_readme": true,
   "homeassistant": "2025.1.0",
   "country": ["DE", "AT", "CH"]

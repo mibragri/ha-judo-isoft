@@ -1,4 +1,4 @@
-"""DataUpdateCoordinator für die Judo-Integration."""
+"""DataUpdateCoordinator for the JUDO integration."""
 from __future__ import annotations
 
 import logging
@@ -20,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 
 @dataclass(slots=True)
 class JudoData:
-    """Strukturierte Daten, die der Coordinator pro Update liefert."""
+    """Container for one coordinator update cycle."""
 
     device_type_code: int | None = None
     device_type_name: str | None = None
@@ -29,6 +29,7 @@ class JudoData:
     installation_date: datetime | None = None
     target_hardness: int | None = None
     salt_level_g: int | None = None
+    salt_range_days: int | None = None
     total_water_m3: float | None = None
     soft_water_m3: float | None = None
     operating_minutes: int | None = None
@@ -41,7 +42,7 @@ class JudoData:
 
 
 class JudoCoordinator(DataUpdateCoordinator[JudoData]):
-    """Holt alle Werte zentral mit kontrolliertem Throttling."""
+    """Centrally fetches all values with controlled throttling."""
 
     api: JudoApi
 
@@ -63,25 +64,25 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
         self._static = JudoData()
 
     async def _load_static(self) -> None:
-        """Statische Werte einmalig laden (Geräteinfo)."""
+        """Load static device info once on first refresh."""
         try:
             code, name = await self.api.get_device_type()
             self._static.device_type_code = code
             self._static.device_type_name = name
         except JudoApiError as err:
-            _LOGGER.warning("Gerätetyp konnte nicht gelesen werden: %s", err)
+            _LOGGER.warning("device type unavailable: %s", err)
         try:
             self._static.device_number = await self.api.get_device_number()
         except JudoApiError as err:
-            _LOGGER.warning("Gerätenummer konnte nicht gelesen werden: %s", err)
+            _LOGGER.warning("device number unavailable: %s", err)
         try:
             self._static.software_version = await self.api.get_software_version()
         except JudoApiError as err:
-            _LOGGER.warning("SW-Version konnte nicht gelesen werden: %s", err)
+            _LOGGER.warning("software version unavailable: %s", err)
         try:
             self._static.installation_date = await self.api.get_installation_date()
         except JudoApiError as err:
-            _LOGGER.debug("Inbetriebnahmedatum nicht verfügbar: %s", err)
+            _LOGGER.debug("installation date unavailable: %s", err)
         self._static_loaded = True
 
     async def _async_update_data(self) -> JudoData:
@@ -97,7 +98,9 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
         )
         try:
             data.target_hardness = await self.api.get_target_hardness()
-            data.salt_level_g = await self.api.get_salt_level()
+            salt = await self.api.get_salt()
+            data.salt_level_g = salt["weight_g"]
+            data.salt_range_days = salt["range_days"]
             data.total_water_m3 = await self.api.get_total_water()
             data.soft_water_m3 = await self.api.get_soft_water()
             op = await self.api.get_operating_time()
@@ -105,13 +108,13 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
             data.operating_hours = op["hours"]
             data.operating_days = op["days"]
             data.operating_text = (
-                f"{op['days']} Tage, {op['hours']} h, {op['minutes']} min"
+                f"{op['days']}d {op['hours']}h {op['minutes']}min"
             )
             stats = await self.api.get_daily_stats()
             data.daily_total_l = stats.get("total")
             data.daily_hourly_l = stats.get("hourly")
         except JudoApiAuthError as err:
-            raise UpdateFailed(f"Auth-Fehler: {err}") from err
+            raise UpdateFailed(f"auth error: {err}") from err
         except JudoApiError as err:
             raise UpdateFailed(str(err)) from err
 
@@ -120,12 +123,12 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
 
     @property
     def device_info(self) -> dict[str, Any]:
-        """HA Geräte-Identifikation für Entity-Registry."""
+        """Device identification used by all entities."""
         ident = self._static.device_number or "judo"
         return {
             "identifiers": {(DOMAIN, ident)},
             "manufacturer": "JUDO Wasseraufbereitung",
-            "model": self._static.device_type_name or "Judo Connectivity",
-            "name": f"Judo {self._static.device_type_name or 'i-soft'}",
+            "model": self._static.device_type_name or "Connectivity module",
+            "name": f"JUDO {self._static.device_type_name or 'i-soft'}",
             "sw_version": self._static.software_version,
         }

@@ -2,8 +2,8 @@
   "config": {
     "step": {
       "user": {
-        "title": "Judo Connectivity-Modul",
-        "description": "Verbindung zum Connectivity-Modul herstellen.",
+        "title": "JUDO Connectivity-Modul",
+        "description": "Verbindung zum JUDO Connectivity-Modul im lokalen Netzwerk herstellen.",
         "data": {
           "host": "IP-Adresse oder Hostname",
           "username": "Benutzername",
@@ -31,6 +31,7 @@
     "sensor": {
       "target_hardness": { "name": "Wunschwasserhärte" },
       "salt_level": { "name": "Salzvorrat" },
+      "salt_range": { "name": "Salzreichweite" },
       "total_water": { "name": "Gesamtwassermenge" },
       "soft_water": { "name": "Weichwassermenge" },
       "operating_time": { "name": "Betriebszeit" },

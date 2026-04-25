@@ -1,4 +1,4 @@
-"""HTTP-Client für das Judo Connectivity-Modul."""
+"""HTTP client for the JUDO connectivity module."""
 from __future__ import annotations
 
 import asyncio
@@ -34,19 +34,18 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class JudoApiError(Exception):
-    """Wird geworfen, wenn die API einen Fehler meldet."""
+    """Raised when the API reports an error."""
 
 
 class JudoApiAuthError(JudoApiError):
-    """Authentifizierung fehlgeschlagen (HTTP 401)."""
+    """Authentication failed (HTTP 401)."""
 
 
 class JudoApi:
-    """Async-Client für das Judo Connectivity-Modul.
+    """Async client for the JUDO connectivity module.
 
-    Die neue Firmware (V2023+) erlaubt ausschließlich HTTP und reagiert
-    nur auf Anfragen mit mindestens ~10 Sekunden Abstand. Diese Klasse
-    serialisiert alle Calls und sorgt für den Mindestabstand.
+    Firmware V2023+ accepts only HTTP and only honors requests at least
+    ~10 seconds apart. This class serializes calls and enforces the gap.
     """
 
     def __init__(
@@ -69,7 +68,7 @@ class JudoApi:
         async with self._lock:
             wait = MIN_API_GAP - (time.monotonic() - self._last_call)
             if wait > 0:
-                _LOGGER.debug("Throttle: warte %.1fs vor %s", wait, register)
+                _LOGGER.debug("Throttle: waiting %.1fs before %s", wait, register)
                 await asyncio.sleep(wait)
             try:
                 async with async_timeout.timeout(REQUEST_TIMEOUT):
@@ -80,45 +79,46 @@ class JudoApi:
                             raise JudoApiAuthError("HTTP 401 Unauthorized")
                         if resp.status != 200:
                             raise JudoApiError(
-                                f"HTTP {resp.status} bei {method} {register}"
+                                f"HTTP {resp.status} on {method} {register}"
                             )
                         payload = await resp.json(content_type=None)
                         data = payload.get("data") if isinstance(payload, dict) else None
                         if expect_data and (data is None or data == ""):
-                            # Leere Antwort = Rate-Limit oder unbekanntes Register
+                            # Empty response usually means rate-limit hit or
+                            # unsupported register on this model.
                             raise JudoApiError(
-                                f"leere Antwort für {register} (rate-limit?)"
+                                f"empty response for {register} (rate-limit?)"
                             )
                         return data
             except asyncio.TimeoutError as err:
-                raise JudoApiError(f"Timeout bei {method} {register}") from err
+                raise JudoApiError(f"timeout on {method} {register}") from err
             except aiohttp.ClientError as err:
-                raise JudoApiError(f"Verbindungsfehler: {err}") from err
+                raise JudoApiError(f"connection error: {err}") from err
             finally:
                 self._last_call = time.monotonic()
 
     @staticmethod
     def _hex_le_int(hexstr: str) -> int:
-        """Hex-String paarweise byteweise von rechts nach links als Int interpretieren."""
+        """Parse a hex string as a little-endian unsigned integer."""
         return int.from_bytes(bytes.fromhex(hexstr), "little")
 
-    # --- Lese-Methoden ---
+    # --- read methods ---
 
     async def get_device_type(self) -> tuple[int, str]:
         from .const import DEVICE_TYPES
 
         data = await self._request("GET", REG_DEVICE_TYPE)
         code = int(data, 16)
-        return code, DEVICE_TYPES.get(code, f"Unbekannt (0x{code:02X})")
+        return code, DEVICE_TYPES.get(code, f"Unknown (0x{code:02X})")
 
     async def get_device_number(self) -> str:
         data = await self._request("GET", REG_DEVICE_NUMBER)
-        # Geräte-Nummer ist eine 8-Hex Zahl, im UI dezimal mit führender 0
+        # Device number stored as 4 LE bytes, displayed as decimal
         return str(self._hex_le_int(data))
 
     async def get_software_version(self) -> str:
         data = await self._request("GET", REG_SW_VERSION)
-        # Format: "MMmmpp" → "MM.mm.pp"
+        # Format: "MMmmpp" -> "MM.mm.pp"
         if len(data) >= 6:
             return f"{int(data[0:2], 16)}.{int(data[2:4], 16)}.{int(data[4:6], 16)}"
         return data
@@ -127,35 +127,35 @@ class JudoApi:
         data = await self._request("GET", REG_INSTALLATION_DATE, expect_data=False)
         if not data:
             return None
-        # Manche Modelle (z.B. i-soft K) liefern hier keinen sinnvollen Wert
-        # (Junk in der Vergangenheit oder weit in der Zukunft). Verwerfen wenn
-        # der Wert nicht zwischen 2000-01-01 und "jetzt + 1 Tag" liegt.
-        import time as _time
-
+        # Some models (e.g. i-soft K) return junk values here. Reject anything
+        # outside the plausible range [2000-01-01, now+1d].
         ts = self._hex_le_int(data)
-        upper = _time.time() + 86400
+        upper = time.time() + 86400
         if not 946684800 <= ts <= upper:
             _LOGGER.debug(
-                "Inbetriebnahmedatum %s unplausibel, ignoriert (raw=%s)", ts, data
+                "implausible installation date %s, ignored (raw=%s)", ts, data
             )
             return None
         return datetime.fromtimestamp(ts)
 
     async def get_target_hardness(self) -> int:
         data = await self._request("GET", REG_TARGET_HARDNESS)
-        # 1 byte °dH
+        # 1 byte, °dH
         return int(data[:2], 16)
 
-    async def get_salt_level(self) -> int:
+    async def get_salt(self) -> dict[str, int]:
         data = await self._request("GET", REG_SALT_LEVEL)
-        # 5600 liefert 4 Bytes; nur die ersten beiden sind das Salz-Gewicht in g
-        # (Big-Endian, bestätigt durch Vergleich mit Geräte-Display ~18 kg).
-        # Bytes 2-3 sind reservierter/unbekannter Bereich.
-        return int(data[:4], 16)
+        # Register 5600 returns 4 bytes:
+        #   bytes 0-1 (BE)     = salt weight in grams
+        #   bytes 2-3 (LE)     = remaining range in days
+        return {
+            "weight_g": int(data[:4], 16),
+            "range_days": int.from_bytes(bytes.fromhex(data[4:8]), "little"),
+        }
 
     async def get_total_water(self) -> float:
         data = await self._request("GET", REG_TOTAL_WATER)
-        # 4 bytes LE in mL → m³
+        # 4 LE bytes in mL -> m³
         return self._hex_le_int(data) / 1_000_000
 
     async def get_soft_water(self) -> float:
@@ -164,9 +164,9 @@ class JudoApi:
 
     async def get_operating_time(self) -> dict[str, int]:
         data = await self._request("GET", REG_OPERATING_HOURS)
-        # Layout: byte0=min, byte1=h, bytes[2:4]=days little-endian
+        # Layout: byte0=minutes, byte1=hours, bytes[2:4]=days little-endian
         if len(data) < 8:
-            raise JudoApiError(f"unerwartetes Format Betriebsstunden: {data}")
+            raise JudoApiError(f"unexpected operating-time format: {data}")
         return {
             "minutes": int(data[0:2], 16),
             "hours": int(data[2:4], 16),
@@ -175,7 +175,7 @@ class JudoApi:
 
     async def get_daily_stats(self, day: datetime | None = None) -> dict[str, Any]:
         d = day or datetime.now()
-        # Endpoint: FB00 + DD + MM + YYYY (Jahr little-endian)
+        # Endpoint: FB00 + DD + MM + YYYY (year little-endian)
         year_le = f"{d.year & 0xFF:02X}{(d.year >> 8) & 0xFF:02X}"
         endpoint = f"{REG_DAILY_STATS}{d.day:02X}{d.month:02X}{year_le}"
         data = await self._request("GET", endpoint, expect_data=False)
@@ -183,7 +183,7 @@ class JudoApi:
             return {"hourly": [], "total": 0}
         hourly = []
         total = 0
-        # 24 Werte je 4 Bytes LE
+        # 24 values, 4 bytes LE each
         for i in range(0, len(data), 8):
             chunk = data[i : i + 8]
             if len(chunk) < 8:
@@ -193,7 +193,7 @@ class JudoApi:
             total += v
         return {"hourly": hourly, "total": total}
 
-    # --- Schreib-Methoden ---
+    # --- write methods ---
 
     async def start_regeneration(self) -> None:
         await self._request("POST", REG_REGENERATION_START, expect_data=False)
@@ -208,9 +208,6 @@ class JudoApi:
 
     async def set_target_hardness(self, dh: int) -> None:
         if not 1 <= dh <= 25:
-            raise ValueError("Wunschwasserhärte muss zwischen 1 und 25 °dH liegen")
-        # Register 3000 + 2 hex bytes (low byte first laut Forum: hier konservativ
-        # mit zwei aufeinanderfolgenden Bytes — Wert wird beim ersten Aufruf bestätigt
-        # über Re-Read von 5100)
+            raise ValueError("target hardness must be between 1 and 25 °dH")
         register = f"3000{dh:02X}00"
         await self._request("POST", register, expect_data=False)

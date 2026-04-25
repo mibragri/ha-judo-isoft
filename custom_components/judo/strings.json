@@ -2,50 +2,51 @@
   "config": {
     "step": {
       "user": {
-        "title": "Judo Connectivity-Modul",
-        "description": "Verbindung zum Connectivity-Modul herstellen.",
+        "title": "JUDO connectivity module",
+        "description": "Connect to the JUDO connectivity module on your local network.",
         "data": {
-          "host": "IP-Adresse oder Hostname",
-          "username": "Benutzername",
-          "password": "Passwort"
+          "host": "IP address or hostname",
+          "username": "Username",
+          "password": "Password"
         }
       },
       "reconfigure": {
-        "title": "Verbindung anpassen",
+        "title": "Update connection",
         "data": {
-          "host": "IP-Adresse oder Hostname",
-          "username": "Benutzername",
-          "password": "Passwort"
+          "host": "IP address or hostname",
+          "username": "Username",
+          "password": "Password"
         }
       }
     },
     "error": {
-      "cannot_connect": "Verbindung fehlgeschlagen",
-      "invalid_auth": "Anmeldung fehlgeschlagen"
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication"
     },
     "abort": {
-      "already_configured": "Dieses Gerät ist bereits konfiguriert."
+      "already_configured": "Device is already configured."
     }
   },
   "entity": {
     "sensor": {
-      "target_hardness": { "name": "Wunschwasserhärte" },
-      "salt_level": { "name": "Salzvorrat" },
-      "total_water": { "name": "Gesamtwassermenge" },
-      "soft_water": { "name": "Weichwassermenge" },
-      "operating_time": { "name": "Betriebszeit" },
-      "daily_water": { "name": "Tagesverbrauch" },
-      "installation_date": { "name": "Inbetriebnahmedatum" }
+      "target_hardness": { "name": "Target water hardness" },
+      "salt_level": { "name": "Salt level" },
+      "salt_range": { "name": "Salt range" },
+      "total_water": { "name": "Total water" },
+      "soft_water": { "name": "Soft water" },
+      "operating_time": { "name": "Operating time" },
+      "daily_water": { "name": "Daily water consumption" },
+      "installation_date": { "name": "Installation date" }
     },
     "binary_sensor": {
-      "connectivity": { "name": "Verbunden" }
+      "connectivity": { "name": "Connected" }
     },
     "button": {
-      "regeneration": { "name": "Regeneration starten" }
+      "regeneration": { "name": "Start regeneration" }
     },
     "switch": {
-      "leakage_protection": { "name": "Leckageschutz" },
-      "vacation_mode": { "name": "Urlaubsmodus" }
+      "leakage_protection": { "name": "Leakage protection" },
+      "vacation_mode": { "name": "Vacation mode" }
     }
   }
 }

@@ -1,4 +1,4 @@
-"""Binary-Sensoren für Judo (z.B. Verbindungs-Status)."""
+"""Binary sensors for JUDO (e.g. connectivity status)."""
 from __future__ import annotations
 
 from datetime import timedelta
@@ -38,12 +38,14 @@ class JudoConnectivity(CoordinatorEntity[JudoCoordinator], BinarySensorEntity):
 
     @property
     def is_on(self) -> bool:
-        # Connectivity = letzte erfolgreiche Aktualisierung < 2× Update-Intervall
+        # Connected = last successful update is within 2× scan interval
         if not self.coordinator.last_update_success:
             return False
         last = self.coordinator.data.last_full_refresh if self.coordinator.data else None
         if last is None:
             return False
         return dt_util.now() - last.astimezone(dt_util.now().tzinfo) < (
-            self.coordinator.update_interval * 2 if self.coordinator.update_interval else timedelta(minutes=15)
+            self.coordinator.update_interval * 2
+            if self.coordinator.update_interval
+            else timedelta(minutes=15)
         )

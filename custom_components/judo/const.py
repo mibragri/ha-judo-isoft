@@ -1,14 +1,14 @@
-"""Konstanten für die Judo-Integration."""
+"""Constants for the JUDO integration."""
 from __future__ import annotations
 
 DOMAIN = "judo"
 DEFAULT_USERNAME = "admin"
 DEFAULT_PASSWORD = "Connectivity"
-DEFAULT_SCAN_INTERVAL = 300  # Sekunden
-MIN_API_GAP = 11.0  # Sekunden zwischen API-Calls (Firmware rate-limit)
-REQUEST_TIMEOUT = 15  # Sekunden
+DEFAULT_SCAN_INTERVAL = 300  # seconds
+MIN_API_GAP = 11.0  # seconds between API calls (firmware rate-limit)
+REQUEST_TIMEOUT = 15  # seconds
 
-# REST-Register (hex strings, ohne führendes 0x)
+# REST registers (hex strings without leading 0x)
 REG_DEVICE_TYPE = "FF00"
 REG_DEVICE_NUMBER = "0600"
 REG_SW_VERSION = "0100"
@@ -29,7 +29,7 @@ REG_LEAKAGE_PROTECTION_OFF = "3C01"
 REG_VACATION_MODE_ON = "4100"
 REG_VACATION_MODE_OFF = "4200"
 
-# Bekannte Geräte-Typen (FF00-Wert → Bezeichnung)
+# Known device types (FF00 value -> human-readable name)
 DEVICE_TYPES = {
     0x33: "Softwell P",
     0x34: "Softwell K",

@@ -1,9 +1,8 @@
-"""Sensor-Entitäten für Judo."""
+"""Sensor entities for JUDO."""
 from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -44,6 +43,14 @@ SENSORS: tuple[JudoSensorDescription, ...] = (
         value_fn=lambda d: d.salt_level_g,
     ),
     JudoSensorDescription(
+        key="salt_range",
+        translation_key="salt_range",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:calendar-clock",
+        value_fn=lambda d: d.salt_range_days,
+    ),
+    JudoSensorDescription(
         key="total_water",
         translation_key="total_water",
         device_class=SensorDeviceClass.WATER,
@@ -65,7 +72,7 @@ SENSORS: tuple[JudoSensorDescription, ...] = (
         key="operating_time",
         translation_key="operating_time",
         value_fn=lambda d: d.operating_text,
-        # Geräte-Counter, Bedeutung modellabhängig (s. README)
+        # device counter; meaning depends on model (see README)
         entity_registry_enabled_default=True,
     ),
     JudoSensorDescription(

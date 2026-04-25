@@ -1,4 +1,4 @@
-"""Config Flow für Judo."""
+"""Config flow for JUDO."""
 from __future__ import annotations
 
 from typing import Any
@@ -46,7 +46,7 @@ class JudoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 await self.async_set_unique_id(f"judo-{device_number}")
                 self._abort_if_unique_id_configured()
                 return self.async_create_entry(
-                    title=f"Judo {name} ({device_number})",
+                    title=f"JUDO {name} ({device_number})",
                     data=user_input,
                 )
 
@@ -86,10 +86,12 @@ class JudoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 {
                     vol.Required(CONF_HOST, default=entry.data.get(CONF_HOST)): str,
                     vol.Optional(
-                        CONF_USERNAME, default=entry.data.get(CONF_USERNAME, DEFAULT_USERNAME)
+                        CONF_USERNAME,
+                        default=entry.data.get(CONF_USERNAME, DEFAULT_USERNAME),
                     ): str,
                     vol.Optional(
-                        CONF_PASSWORD, default=entry.data.get(CONF_PASSWORD, DEFAULT_PASSWORD)
+                        CONF_PASSWORD,
+                        default=entry.data.get(CONF_PASSWORD, DEFAULT_PASSWORD),
                     ): str,
                 }
             ),

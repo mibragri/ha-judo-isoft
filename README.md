@@ -1,107 +1,107 @@
-# JUDO Wasseraufbereitung — Home Assistant Integration
+# JUDO Water Treatment — Home Assistant Integration
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz/)
 [![Validate](https://github.com/mibragri/ha-judo-isoft/actions/workflows/validate.yml/badge.svg)](https://github.com/mibragri/ha-judo-isoft/actions/workflows/validate.yml)
 
-Custom Component für Home Assistant zur lokalen Anbindung von **JUDO Wasseraufbereitungsanlagen** (i-soft, i-soft K, i-soft Pro, Softwell, …) über das **JUDO Connectivity-Modul** (Art.-Nr. 2202271).
+Home Assistant custom component for **JUDO water softeners** (i-soft, i-soft K, i-soft Pro, Softwell, …) over the **JUDO Connectivity Module** (P/N 2202271).
 
-> **Lokal — kein Cloud-Account, keine `myjudo.eu`-Anmeldung.** Die Integration spricht direkt das REST-API des Connectivity-Moduls im LAN/WLAN an.
+> **100% local — no cloud account, no `myjudo.eu` login.** The integration talks directly to the connectivity module's REST API on your LAN/Wi-Fi.
 
 ## Features
 
-| Bereich | Entitäten |
+| Area | Entities |
 |---|---|
-| **Verbrauch** | Gesamtwassermenge (m³), Weichwassermenge (m³), Tagesverbrauch (L) |
-| **Anlage** | Salzvorrat (g), Wunschwasserhärte (°dH), Betriebszeit |
-| **Status** | Verbindung verloren / OK (Binary-Sensor) |
-| **Aktionen** | Regeneration starten (Button) |
-| **Schalter** | Leckageschutz, Urlaubsmodus |
-| **Diagnose** | Inbetriebnahmedatum, Geräteinfo (Typ, Seriennummer, SW-Version) |
+| **Consumption** | Total water (m³), Soft water (m³), Daily consumption (L) |
+| **Plant** | Salt level (g), Salt range (days), Target water hardness (°dH), Operating time |
+| **Status** | Connected / connection lost (binary sensor) |
+| **Actions** | Start regeneration (button) |
+| **Switches** | Leakage protection, Vacation mode |
+| **Diagnostic** | Installation date, device info (type, serial, software version) |
 
-Sprachen: **Deutsch** und **Englisch**.
+UI translations: **English** and **German**.
 
-## Wie es technisch funktioniert
+## How it works
 
-- **Eine zentrale `DataUpdateCoordinator`-Instanz** holt alle Werte gebündelt; Entitäten lesen aus einem geteilten Datencontainer
-- **API-Throttling**: das Connectivity-Modul reagiert auf zu schnelle Anfragen mit leeren Antworten. Die Integration serialisiert Calls und hält **mindestens 11 s Pause** zwischen Aufrufen
-- **HTTP only**: die neue Firmware (V2023+) leitet HTTPS auf HTTP um
-- **Plausibilitätschecks** für Felder, die je nach Modell Junk-Werte liefern (z. B. Inbetriebnahmedatum bei i-soft K)
+- A single **`DataUpdateCoordinator`** fetches every value once per cycle; entities read from a shared in-memory snapshot.
+- **API throttling**: the connectivity module silently drops back-to-back requests. The integration serializes calls and enforces an **11 s minimum gap** between them.
+- **HTTP only**: firmware V2023+ permanently redirects HTTPS to the HTTP root.
+- **Plausibility filters** for fields that ship junk on some models (e.g. installation date on i-soft K).
 
-## Voraussetzungen
+## Requirements
 
-- Home Assistant **2025.1** oder neuer
-- JUDO Connectivity-Modul (2202271) im Heimnetz, erreichbar per HTTP
-- Erstkonfiguration der Connectivity-Modul-Verbindung über die JUDO-App oder das Web-UI bereits abgeschlossen (siehe Abschnitt unten)
+- Home Assistant **2025.1** or newer
+- JUDO Connectivity Module (P/N 2202271) on your home network, reachable over HTTP
+- Initial Wi-Fi/LAN setup of the module already done via the JUDO app or web UI (see below)
 
 ## Installation
 
-### Variante A — HACS (empfohlen)
+### Option A — HACS (recommended)
 
-1. HACS öffnen → drei Punkte oben rechts → **Eigene Repositories**
-2. Repository: `https://github.com/mibragri/ha-judo-isoft`, Kategorie: **Integration**
-3. *Judo Wasseraufbereitung* installieren
-4. Home Assistant **neu starten**
-5. *Einstellungen → Geräte & Dienste → Integration hinzufügen → Judo*
+1. HACS → three-dot menu → **Custom repositories**
+2. Repository: `https://github.com/mibragri/ha-judo-isoft`, category: **Integration**
+3. Install *JUDO Water Treatment*
+4. **Restart** Home Assistant
+5. *Settings → Devices & services → Add integration → JUDO*
 
-### Variante B — manuell
+### Option B — manual
 
-1. Inhalt von `custom_components/judo/` nach `<config>/custom_components/judo/` kopieren
-2. Home Assistant neu starten
-3. Integration über UI hinzufügen
+1. Copy `custom_components/judo/` to `<config>/custom_components/judo/`
+2. Restart Home Assistant
+3. Add the integration via the UI
 
-## Konfiguration
+## Configuration
 
-| Feld | Standard | Beschreibung |
+| Field | Default | Description |
 |---|---|---|
-| **IP-Adresse / Hostname** | – | IP des Connectivity-Moduls im LAN |
-| **Benutzername** | `admin` | Anmelde-Benutzer am Modul |
-| **Passwort** | `Connectivity` | Werkspasswort (sollte am Modul geändert werden!) |
+| **IP address / hostname** | – | The connectivity module's address on your LAN |
+| **Username** | `admin` | API user on the module |
+| **Password** | `Connectivity` | Default password — **change this on the module itself!** |
 
-Eine spätere IP-Änderung (DHCP-Wechsel) lässt sich über **Reconfigure** im Integrations-Menü erledigen, ohne neu hinzuzufügen.
+If the module's IP changes (DHCP rotation), use the integration's **Reconfigure** option — no need to delete and re-add.
 
-## Connectivity-Modul Erstkonfiguration
+## Connectivity module first-time setup
 
-Falls dein Modul noch nicht im Netz ist:
+If the module is brand new and not yet on your network:
 
-1. Modul anschließen (LAN-Kabel optional)
-2. Smartphone/Laptop mit der WLAN-SSID **`Judo Connectivity`** verbinden (Hotspot des Moduls)
-3. Browser → `http://192.168.4.1`
-4. Login: `admin` / `Connectivity`
-5. *Einstellungen → WLAN aktivieren* + Heimnetz-SSID + Passwort eintragen → speichern
-6. Optional: Portal-Server `myjudo.eu` Port `8585` aktivieren (für JU-Control-App)
-7. Werkspasswort durch eigenes ersetzen
-8. Modul neu starten — bekommt jetzt eine IP per DHCP im Heimnetz
+1. Power up the module (LAN cable optional)
+2. From a phone or laptop, join the open Wi-Fi **`Judo Connectivity`** (the module's hotspot)
+3. Browse to `http://192.168.4.1`
+4. Log in: `admin` / `Connectivity`
+5. *Settings → enable Wi-Fi* → enter your home SSID + password → save
+6. Optionally enable the portal at `myjudo.eu:8585` (for the JU-Control mobile app)
+7. Replace the default `Connectivity` password
+8. Reboot the module — it will join your LAN and pick up a DHCP address
 
-## Bekannte Eigenheiten der Firmware (V2023+)
+## Known firmware quirks (V2023+)
 
-- **HTTPS leitet auf HTTP-Root um.** Die Integration nutzt direkt HTTP.
-- **Rate-Limit**: Bei Anfragen unter ~10 s Abstand kommt eine leere Antwort zurück. Die Integration throttled auf 11 s Mindestabstand.
-- **Inbetriebnahmedatum (`/api/rest/0E00`)** liefert auf einigen Modellen (z. B. i-soft K) keinen plausiblen Unix-Timestamp. Die Integration verwirft Werte vor 2000 oder in der Zukunft → Sensor bleibt `unknown`.
-- **Salzstand (`/api/rest/5600`)** sind 4 Bytes; nur die ersten 2 sind das Gewicht in g (Big-Endian). Die hinteren 2 Bytes sind reserviert oder modellabhängig (vermutlich Reichweite in Tagen — derzeit nicht ausgewertet).
-- **Betriebszeit-Counter (`/api/rest/2500`)** liefert auf manchen Modellen Werte, die nicht zur tatsächlichen Nutzungsdauer passen — vermutlich werksinterne Test-Stunden vor Auslieferung. Die Integration zeigt das Format genau wie das Geräte-Display ("X Tage, Y h, Z min").
-- **Schreib-Aktionen** (Regenerationsstart, Leckageschutz-Toggle, Urlaubsmodus) liefern keine Bestätigung des Schaltzustands über die API. Die Switches halten den letzten gewählten Zustand selbst.
+- **HTTPS redirects to HTTP root.** The integration uses HTTP directly.
+- **Rate limit**: requests less than ~10 s apart return empty bodies. The integration enforces an 11 s gap.
+- **Installation date** (`/api/rest/0E00`) returns junk on some models (e.g. i-soft K). Values outside `[2000, now+1d]` are discarded → sensor stays `unknown`.
+- **Salt level** (`/api/rest/5600`) is 4 bytes total: bytes 0–1 are weight in grams (big-endian), bytes 2–3 are remaining range in days (little-endian).
+- **Operating time** (`/api/rest/2500`) sometimes reports values that don't match real-world usage (likely factory burn-in test hours retained from before shipping). The integration shows the raw `Xd Yh Zmin` string, identical to the device display.
+- **Write actions** (regeneration, leakage protection toggle, vacation mode) don't return a confirmed switch state. The integration caches the last requested state locally.
 
-## Unterstützte Modelle
+## Supported models
 
-Die Integration sollte mit allen Geräten funktionieren, die das Connectivity-Modul akzeptieren:
+The integration should work with any device that uses the JUDO Connectivity Module:
 
 - JUDO i-soft / i-soft K / i-soft TGA
 - JUDO i-soft Pro / i-soft Pro SAFE+ / i-soft K SAFE+
 - JUDO Softwell P / S / K / KS / C
 
-Getestet wurde aktuell mit **i-soft K** (Firmware V2023+).
+Currently tested with **i-soft K** (firmware V2023+).
 
-Bei anderen Modellen kann das **Modell-Mapping** (Const-Datei `const.py: DEVICE_TYPES`) erweitert werden — Pull Requests willkommen.
+For other models, extend the device-type mapping in `const.py: DEVICE_TYPES` — pull requests welcome.
 
-## Mitwirken
+## Contributing
 
-Issues und Pull Requests sind willkommen. Beim Reverse-Engineering der API helfen folgende Quellen:
+Issues and pull requests are welcome. Useful sources for register reverse-engineering:
 
-- [JUDO Connectivity-Modul Handbuch](https://judo.eu/app/downloads/files/de/8000000/manuals/1702929_202301.pdf)
-- [iobroker.judoisoft (arteck)](https://github.com/arteck/iobroker.judoisoft) — Datenkonverter mit Register-Beschreibungen
-- [iobroker Forum-Script (Bert)](https://forum.iobroker.net/topic/78777/) — von Judo bestätigte Formeln
+- [JUDO Connectivity Module manual](https://judo.eu/app/downloads/files/de/8000000/manuals/1702929_202301.pdf)
+- [iobroker.judoisoft (arteck)](https://github.com/arteck/iobroker.judoisoft) — data converter with register descriptions
+- [iobroker forum script (Bert)](https://forum.iobroker.net/topic/78777/) — formulas confirmed by JUDO
 
-## Lizenz
+## License
 
 [MIT](LICENSE)
