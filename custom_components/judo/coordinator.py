@@ -37,7 +37,7 @@ class JudoData:
     operating_days: int | None = None
     operating_text: str | None = None
     daily_total_l: int | None = None
-    daily_hourly_l: list[int] | None = None
+    daily_slots_l: list[int] | None = None  # 8 values, 3 hours each
     last_full_refresh: datetime | None = None
 
 
@@ -112,7 +112,7 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
             )
             stats = await self.api.get_daily_stats()
             data.daily_total_l = stats.get("total")
-            data.daily_hourly_l = stats.get("hourly")
+            data.daily_slots_l = stats.get("slots")
         except JudoApiAuthError as err:
             raise UpdateFailed(f"auth error: {err}") from err
         except JudoApiError as err:

@@ -174,24 +174,28 @@ class JudoApi:
         }
 
     async def get_daily_stats(self, day: datetime | None = None) -> dict[str, Any]:
+        """Return liters per 3-hour slot for the given day (default: today).
+
+        Layout returned by the firmware: 8 × uint32 big-endian, one value per
+        3-hour slot (00-03, 03-06, … 21-24). The endpoint encodes the year
+        big-endian (DDMMYYYY).
+        """
         d = day or datetime.now()
-        # Endpoint: FB00 + DD + MM + YYYY (year little-endian)
-        year_le = f"{d.year & 0xFF:02X}{(d.year >> 8) & 0xFF:02X}"
-        endpoint = f"{REG_DAILY_STATS}{d.day:02X}{d.month:02X}{year_le}"
+        # Endpoint: FB00 + DD + MM + YYYY (year big-endian)
+        endpoint = f"{REG_DAILY_STATS}{d.day:02X}{d.month:02X}{d.year:04X}"
         data = await self._request("GET", endpoint, expect_data=False)
         if not data:
-            return {"hourly": [], "total": 0}
-        hourly = []
+            return {"slots": [], "total": 0}
+        slots: list[int] = []
         total = 0
-        # 24 values, 4 bytes LE each
         for i in range(0, len(data), 8):
             chunk = data[i : i + 8]
             if len(chunk) < 8:
                 break
-            v = int.from_bytes(bytes.fromhex(chunk), "little")
-            hourly.append(v)
+            v = int.from_bytes(bytes.fromhex(chunk), "big")
+            slots.append(v)
             total += v
-        return {"hourly": hourly, "total": total}
+        return {"slots": slots, "total": total}
 
     # --- write methods ---
 
