@@ -32,20 +32,23 @@
       "target_hardness": { "name": "Wunschwasserhärte" },
       "salt_level": { "name": "Salzvorrat" },
       "salt_range": { "name": "Salzreichweite" },
+      "salt_warning_threshold": { "name": "Salz-Warnschwelle" },
       "total_water": { "name": "Gesamtwassermenge" },
       "soft_water": { "name": "Weichwassermenge" },
       "operating_time": { "name": "Betriebszeit" },
       "daily_water": { "name": "Tagesverbrauch" },
-      "installation_date": { "name": "Inbetriebnahmedatum" }
+      "installation_date": { "name": "Inbetriebnahmedatum" },
+      "service_contact": { "name": "Service-Kontakt" }
     },
     "binary_sensor": {
       "connectivity": { "name": "Verbunden" }
     },
     "button": {
-      "regeneration": { "name": "Regeneration starten" }
+      "regeneration": { "name": "Regeneration starten" },
+      "leakage_close": { "name": "Leckageschutz aktivieren" },
+      "leakage_open": { "name": "Leckageschutz deaktivieren" }
     },
     "switch": {
-      "leakage_protection": { "name": "Leckageschutz" },
       "vacation_mode": { "name": "Urlaubsmodus" }
     }
   }

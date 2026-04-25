@@ -21,63 +21,30 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     coordinator: JudoCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities(
-        [
-            JudoLeakageProtectionSwitch(coordinator, entry.entry_id),
-            JudoVacationModeSwitch(coordinator, entry.entry_id),
-        ]
-    )
+    async_add_entities([JudoVacationModeSwitch(coordinator, entry.entry_id)])
 
 
-class _JudoSwitchBase(SwitchEntity):
-    """Base class: the API does not expose a current state for these
-    switches, so we cache the last requested state locally."""
+class JudoVacationModeSwitch(SwitchEntity):
+    """Vacation mode toggle.
+
+    The connectivity module exposes only write registers for vacation mode
+    (no read state), so we cache the last requested state locally. When HA
+    restarts the displayed state defaults to off until the user toggles it.
+    """
 
     _attr_has_entity_name = True
+    _attr_translation_key = "vacation_mode"
+    _attr_icon = "mdi:beach"
 
-    def __init__(self, coordinator: JudoCoordinator, entry_id: str, key: str) -> None:
+    def __init__(self, coordinator: JudoCoordinator, entry_id: str) -> None:
         self._coordinator = coordinator
-        self._attr_unique_id = f"{entry_id}_{key}"
+        self._attr_unique_id = f"{entry_id}_vacation_mode"
         self._attr_device_info = coordinator.device_info
         self._is_on = False
 
     @property
     def is_on(self) -> bool:
         return self._is_on
-
-
-class JudoLeakageProtectionSwitch(_JudoSwitchBase):
-    _attr_translation_key = "leakage_protection"
-    _attr_icon = "mdi:water-alert"
-
-    def __init__(self, coordinator: JudoCoordinator, entry_id: str) -> None:
-        super().__init__(coordinator, entry_id, "leakage_protection")
-
-    async def async_turn_on(self, **kwargs) -> None:
-        try:
-            await self._coordinator.api.set_leakage_protection(True)
-        except JudoApiError as err:
-            _LOGGER.error("enabling leakage protection failed: %s", err)
-            return
-        self._is_on = True
-        self.async_write_ha_state()
-
-    async def async_turn_off(self, **kwargs) -> None:
-        try:
-            await self._coordinator.api.set_leakage_protection(False)
-        except JudoApiError as err:
-            _LOGGER.error("disabling leakage protection failed: %s", err)
-            return
-        self._is_on = False
-        self.async_write_ha_state()
-
-
-class JudoVacationModeSwitch(_JudoSwitchBase):
-    _attr_translation_key = "vacation_mode"
-    _attr_icon = "mdi:beach"
-
-    def __init__(self, coordinator: JudoCoordinator, entry_id: str) -> None:
-        super().__init__(coordinator, entry_id, "vacation_mode")
 
     async def async_turn_on(self, **kwargs) -> None:
         try:

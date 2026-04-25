@@ -30,6 +30,8 @@ class JudoData:
     target_hardness: int | None = None
     salt_level_g: int | None = None
     salt_range_days: int | None = None
+    salt_warning_days: int | None = None
+    service_contact: str | None = None
     total_water_m3: float | None = None
     soft_water_m3: float | None = None
     operating_minutes: int | None = None
@@ -101,6 +103,14 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
             salt = await self.api.get_salt()
             data.salt_level_g = salt["weight_g"]
             data.salt_range_days = salt["range_days"]
+            try:
+                data.salt_warning_days = await self.api.get_salt_warning_days()
+            except JudoApiError:
+                data.salt_warning_days = None
+            try:
+                data.service_contact = await self.api.get_service_contact()
+            except JudoApiError:
+                data.service_contact = None
             data.total_water_m3 = await self.api.get_total_water()
             data.soft_water_m3 = await self.api.get_soft_water()
             op = await self.api.get_operating_time()

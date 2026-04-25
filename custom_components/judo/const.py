@@ -24,24 +24,66 @@ REG_MONTHLY_STATS = "FD00"
 REG_YEARLY_STATS = "FE00"
 
 REG_REGENERATION_START = "350000"
-REG_LEAKAGE_PROTECTION_ON = "3C00"
-REG_LEAKAGE_PROTECTION_OFF = "3C01"
+REG_LEAKAGE_CLOSE = "3C00"  # close valve = leakage protection active
+REG_LEAKAGE_OPEN = "3D00"   # open valve = leakage protection inactive
 REG_VACATION_MODE_ON = "4100"
 REG_VACATION_MODE_OFF = "4200"
+REG_SALT_WARNING_DAYS = "5700"
+REG_SERVICE_CONTACT = "5800"
 
-# Known device types (FF00 value -> human-readable name)
+# Known device types (FF00 value -> human-readable name).
+# Compiled from OStrama/judo_rest_api which has the most extensive mapping
+# verified across multiple devices.
 DEVICE_TYPES = {
-    0x33: "Softwell P",
-    0x34: "Softwell K",
-    0x42: "Softwell S",
-    0x43: "Softwell KS",
-    0x44: "Softwell C",
-    # Verified against device display: 0x67 reports "i-soft K SAFE+" (and
-    # presumably plain "i-soft K" too — the firmware does not seem to
-    # distinguish via this register). Adjust if your device proves otherwise.
-    0x67: "i-soft K / SAFE+",
-    0x68: "i-soft K (alt code)",
-    0x69: "i-soft TGA",
-    0x72: "i-soft Pro",
-    0x73: "i-soft Pro SAFE+",
+    0x32: "i-soft",
+    0x33: "i-soft SAFE+",
+    0x34: "Softwell P",
+    0x35: "Softwell S",
+    0x36: "Softwell K",
+    0x37: "i-soft TGA",
+    0x38: "QuickSoft M",
+    0x39: "QuickSoft P",
+    0x3C: "i-fill",
+    0x3D: "i-dos eco",
+    0x41: "i-dos eco",
+    0x42: "i-soft K SAFE+",
+    0x43: "i-soft K",
+    0x44: "ZEWA / PROM-i-SAFE",
+    0x46: "QuickSoft CD",
+    0x47: "Softwell KP",
+    0x48: "Softwell KS",
+    0x49: "OptiLine Z",
+    0x4A: "OptiLine E",
+    0x4B: "i-soft Pro S",
+    0x4C: "i-soft Pro L",
+    0x4D: "QuickSoft MP",
+    0x4E: "i-soft C SAFE",
+    0x4F: "i-soft C",
+    0x50: "i-soft K",
+    0x51: "i-soft K SAFE+",
+    0x52: "Softwell KP",
+    0x53: "i-soft",
+    0x54: "i-soft K",
+    0x55: "i-soft TGA",
+    0x56: "i-soft SAFE",
+    0x57: "i-soft SAFE+",
+    0x58: "i-soft Pro",
+    0x59: "Softwell P",
+    0x5A: "Softwell K",
+    0x5B: "QuickSoft M",
+    0x5C: "QuickSoft P",
+    0x5D: "ScanSoft M",
+    0x5E: "ScanSoft P",
+    0x5F: "FineSky WHS C",
+    0x60: "FineSky WHS P",
+    0x61: "QuickSoft CD",
+    0x62: "Softwell KP",
+    0x63: "Softwell S",
+    0x64: "Softwell KS",
+    0x65: "OptiLine Z",
+    0x66: "OptiLine E",
+    0x67: "i-soft K SAFE+",
+    0x68: "ZEWA / PROM-i-SAFE",
+    0x6A: "Aqua Tenera E",
+    0x6B: "Aqua Tenera D",
 }

@@ -16,11 +16,13 @@ from .const import (
     REG_DEVICE_NUMBER,
     REG_DEVICE_TYPE,
     REG_INSTALLATION_DATE,
-    REG_LEAKAGE_PROTECTION_OFF,
-    REG_LEAKAGE_PROTECTION_ON,
+    REG_LEAKAGE_CLOSE,
+    REG_LEAKAGE_OPEN,
     REG_OPERATING_HOURS,
     REG_REGENERATION_START,
     REG_SALT_LEVEL,
+    REG_SALT_WARNING_DAYS,
+    REG_SERVICE_CONTACT,
     REG_SOFT_WATER,
     REG_SW_VERSION,
     REG_TARGET_HARDNESS,
@@ -127,12 +129,16 @@ class JudoApi:
         return data
 
     async def get_installation_date(self) -> datetime | None:
+        """Return the installation date as a datetime, or None if invalid.
+
+        Note: timestamps are stored big-endian on the device (different from
+        counter values). On i-soft K models the value typically reflects the
+        firmware build date rather than the actual user installation date.
+        """
         data = await self._request("GET", REG_INSTALLATION_DATE, expect_data=False)
         if not data:
             return None
-        # Some models (e.g. i-soft K) return junk values here. Reject anything
-        # outside the plausible range [2000-01-01, now+1d].
-        ts = self._hex_le_int(data)
+        ts = int(data, 16)  # big-endian uint32
         upper = time.time() + 86400
         if not 946684800 <= ts <= upper:
             _LOGGER.debug(
@@ -201,14 +207,32 @@ class JudoApi:
             total += v
         return {"slots": slots, "total": total}
 
+    async def get_salt_warning_days(self) -> int:
+        data = await self._request("GET", REG_SALT_WARNING_DAYS)
+        return int(data[:2], 16)
+
+    async def get_service_contact(self) -> str | None:
+        data = await self._request("GET", REG_SERVICE_CONTACT, expect_data=False)
+        if not data:
+            return None
+        try:
+            text = bytes.fromhex(data).decode("ascii", errors="replace").rstrip("\x00\xff ")
+        except ValueError:
+            return None
+        return text or None
+
     # --- write methods ---
 
     async def start_regeneration(self) -> None:
         await self._request("POST", REG_REGENERATION_START, expect_data=False)
 
-    async def set_leakage_protection(self, enabled: bool) -> None:
-        register = REG_LEAKAGE_PROTECTION_ON if enabled else REG_LEAKAGE_PROTECTION_OFF
-        await self._request("POST", register, expect_data=False)
+    async def close_leakage_valve(self) -> None:
+        """Close water valve = leakage protection ACTIVE."""
+        await self._request("POST", REG_LEAKAGE_CLOSE, expect_data=False)
+
+    async def open_leakage_valve(self) -> None:
+        """Open water valve = leakage protection INACTIVE (normal flow)."""
+        await self._request("POST", REG_LEAKAGE_OPEN, expect_data=False)
 
     async def set_vacation_mode(self, enabled: bool) -> None:
         register = REG_VACATION_MODE_ON if enabled else REG_VACATION_MODE_OFF
@@ -218,4 +242,10 @@ class JudoApi:
         if not 1 <= dh <= 25:
             raise ValueError("target hardness must be between 1 and 25 °dH")
         register = f"3000{dh:02X}00"
+        await self._request("POST", register, expect_data=False)
+
+    async def set_salt_warning_days(self, days: int) -> None:
+        if not 1 <= days <= 99:
+            raise ValueError("salt warning threshold must be between 1 and 99 days")
+        register = f"5700{days:02X}"
         await self._request("POST", register, expect_data=False)

@@ -32,20 +32,23 @@
       "target_hardness": { "name": "Target water hardness" },
       "salt_level": { "name": "Salt level" },
       "salt_range": { "name": "Salt range" },
+      "salt_warning_threshold": { "name": "Salt warning threshold" },
       "total_water": { "name": "Total water" },
       "soft_water": { "name": "Soft water" },
       "operating_time": { "name": "Operating time" },
       "daily_water": { "name": "Daily water consumption" },
-      "installation_date": { "name": "Installation date" }
+      "installation_date": { "name": "Installation date" },
+      "service_contact": { "name": "Service contact" }
     },
     "binary_sensor": {
       "connectivity": { "name": "Connected" }
     },
     "button": {
-      "regeneration": { "name": "Start regeneration" }
+      "regeneration": { "name": "Start regeneration" },
+      "leakage_close": { "name": "Activate leakage protection" },
+      "leakage_open": { "name": "Deactivate leakage protection" }
     },
     "switch": {
-      "leakage_protection": { "name": "Leakage protection" },
       "vacation_mode": { "name": "Vacation mode" }
     }
   }

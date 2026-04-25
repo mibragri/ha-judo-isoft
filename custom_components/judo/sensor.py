@@ -14,6 +14,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfMass, UnitOfTime, UnitOfVolume
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -49,6 +50,21 @@ SENSORS: tuple[JudoSensorDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:calendar-clock",
         value_fn=lambda d: d.salt_range_days,
+    ),
+    JudoSensorDescription(
+        key="salt_warning_threshold",
+        translation_key="salt_warning_threshold",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        icon="mdi:bell-alert",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda d: d.salt_warning_days,
+    ),
+    JudoSensorDescription(
+        key="service_contact",
+        translation_key="service_contact",
+        icon="mdi:phone",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda d: d.service_contact,
     ),
     JudoSensorDescription(
         key="total_water",
