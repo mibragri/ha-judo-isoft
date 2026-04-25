@@ -94,13 +94,19 @@ Currently tested with **i-soft K** (firmware V2023+).
 
 For other models, extend the device-type mapping in `const.py: DEVICE_TYPES` — pull requests welcome.
 
+## Related projects
+
+- [OStrama/judo_rest_api](https://github.com/OStrama/judo_rest_api) — Another HA integration with the most thorough register reverse-engineering. We cross-referenced our register layout and device-type table against this project. Key differences in our integration: working daily-statistics sensor, vacation-mode switch, more permissive plausibility checks for installation date.
+- [iobroker.judoisoft (arteck)](https://github.com/arteck/iobroker.judoisoft) — ioBroker adapter with detailed data converter and register documentation.
+- [iobroker forum script (Bert)](https://forum.iobroker.net/topic/78777/) — Community script with formulas confirmed by JUDO support.
+
 ## Contributing
 
-Issues and pull requests are welcome. Useful sources for register reverse-engineering:
+Issues and pull requests welcome. Useful sources for further register exploration:
 
 - [JUDO Connectivity Module manual](https://judo.eu/app/downloads/files/de/8000000/manuals/1702929_202301.pdf)
-- [iobroker.judoisoft (arteck)](https://github.com/arteck/iobroker.judoisoft) — data converter with register descriptions
-- [iobroker forum script (Bert)](https://forum.iobroker.net/topic/78777/) — formulas confirmed by JUDO
+- The repos above
+- KNX-User-Forum thread on [JUDO i-soft](https://knx-user-forum.de/forum/projektforen/edomi/1453632-lbs19002090-judo-i-soft-wasserenth%C3%A4rtungsanlage)
 
 ## License
 

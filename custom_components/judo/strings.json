@@ -30,7 +30,7 @@
   "entity": {
     "sensor": {
       "target_hardness": { "name": "Target water hardness" },
-      "salt_level": { "name": "Salt level" },
+      "salt_storage_mass": { "name": "Salt storage capacity" },
       "salt_range": { "name": "Salt range" },
       "salt_warning_threshold": { "name": "Salt warning threshold" },
       "total_water": { "name": "Total water" },

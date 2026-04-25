@@ -36,12 +36,14 @@ SENSORS: tuple[JudoSensorDescription, ...] = (
         value_fn=lambda d: d.target_hardness,
     ),
     JudoSensorDescription(
-        key="salt_level",
-        translation_key="salt_level",
+        key="salt_storage_mass",
+        translation_key="salt_storage_mass",
         device_class=SensorDeviceClass.WEIGHT,
-        native_unit_of_measurement=UnitOfMass.GRAMS,
+        native_unit_of_measurement=UnitOfMass.KILOGRAMS,
         state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda d: d.salt_level_g,
+        suggested_display_precision=1,
+        value_fn=lambda d: d.salt_storage_mass_kg,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     JudoSensorDescription(
         key="salt_range",

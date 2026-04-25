@@ -153,12 +153,18 @@ class JudoApi:
         return int(data[:2], 16)
 
     async def get_salt(self) -> dict[str, int]:
+        """Return salt info from register 5600.
+
+        Layout (4 bytes total, all little-endian):
+          bytes 0-1 = configured storage mass in grams (i.e. container size,
+                      typically 25000 = 25 kg). This is a *configuration*
+                      value the user sets when refilling the salt tank, not
+                      the current consumption.
+          bytes 2-3 = remaining range in days (estimated by the device).
+        """
         data = await self._request("GET", REG_SALT_LEVEL)
-        # Register 5600 returns 4 bytes:
-        #   bytes 0-1 (BE)     = salt weight in grams
-        #   bytes 2-3 (LE)     = remaining range in days
         return {
-            "weight_g": int(data[:4], 16),
+            "storage_mass_g": int.from_bytes(bytes.fromhex(data[0:4]), "little"),
             "range_days": int.from_bytes(bytes.fromhex(data[4:8]), "little"),
         }
 
@@ -216,10 +222,13 @@ class JudoApi:
         if not data:
             return None
         try:
-            text = bytes.fromhex(data).decode("ascii", errors="replace").rstrip("\x00\xff ")
+            raw = bytes.fromhex(data)
         except ValueError:
             return None
-        return text or None
+        # Empty / unset slots are filled with 0xFF or 0x00.
+        if all(b in (0x00, 0xFF) for b in raw):
+            return None
+        return raw.decode("ascii", errors="replace").rstrip("\x00\xff ") or None
 
     # --- write methods ---
 

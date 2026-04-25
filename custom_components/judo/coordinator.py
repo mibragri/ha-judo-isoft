@@ -28,7 +28,7 @@ class JudoData:
     software_version: str | None = None
     installation_date: datetime | None = None
     target_hardness: int | None = None
-    salt_level_g: int | None = None
+    salt_storage_mass_kg: float | None = None
     salt_range_days: int | None = None
     salt_warning_days: int | None = None
     service_contact: str | None = None
@@ -101,7 +101,7 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
         try:
             data.target_hardness = await self.api.get_target_hardness()
             salt = await self.api.get_salt()
-            data.salt_level_g = salt["weight_g"]
+            data.salt_storage_mass_kg = salt["storage_mass_g"] / 1000
             data.salt_range_days = salt["range_days"]
             try:
                 data.salt_warning_days = await self.api.get_salt_warning_days()

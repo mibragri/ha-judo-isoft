@@ -30,7 +30,7 @@
   "entity": {
     "sensor": {
       "target_hardness": { "name": "Wunschwasserhärte" },
-      "salt_level": { "name": "Salzvorrat" },
+      "salt_storage_mass": { "name": "Salzbehälter-Kapazität" },
       "salt_range": { "name": "Salzreichweite" },
       "salt_warning_threshold": { "name": "Salz-Warnschwelle" },
       "total_water": { "name": "Gesamtwassermenge" },
