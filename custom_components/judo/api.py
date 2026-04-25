@@ -124,11 +124,20 @@ class JudoApi:
         return data
 
     async def get_installation_date(self) -> datetime | None:
-        data = await self._request("GET", REG_INSTALLATION_DATE)
+        data = await self._request("GET", REG_INSTALLATION_DATE, expect_data=False)
         if not data:
             return None
+        # Manche Modelle (z.B. i-soft K) liefern hier keinen sinnvollen Wert
+        # (Junk in der Vergangenheit oder weit in der Zukunft). Verwerfen wenn
+        # der Wert nicht zwischen 2000-01-01 und "jetzt + 1 Tag" liegt.
+        import time as _time
+
         ts = self._hex_le_int(data)
-        if ts <= 0:
+        upper = _time.time() + 86400
+        if not 946684800 <= ts <= upper:
+            _LOGGER.debug(
+                "Inbetriebnahmedatum %s unplausibel, ignoriert (raw=%s)", ts, data
+            )
             return None
         return datetime.fromtimestamp(ts)
 
@@ -139,8 +148,10 @@ class JudoApi:
 
     async def get_salt_level(self) -> int:
         data = await self._request("GET", REG_SALT_LEVEL)
-        # 4 bytes LE in g
-        return self._hex_le_int(data)
+        # 5600 liefert 4 Bytes; nur die ersten beiden sind das Salz-Gewicht in g
+        # (Big-Endian, bestätigt durch Vergleich mit Geräte-Display ~18 kg).
+        # Bytes 2-3 sind reservierter/unbekannter Bereich.
+        return int(data[:4], 16)
 
     async def get_total_water(self) -> float:
         data = await self._request("GET", REG_TOTAL_WATER)
