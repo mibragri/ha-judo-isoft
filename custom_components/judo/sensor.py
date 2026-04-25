@@ -12,7 +12,13 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfMass, UnitOfTime, UnitOfVolume
+from homeassistant.const import (
+    PERCENTAGE,
+    UnitOfMass,
+    UnitOfTime,
+    UnitOfVolume,
+    UnitOfVolumeFlowRate,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -110,14 +116,71 @@ SENSORS: tuple[JudoSensorDescription, ...] = (
 )
 
 
+# Sensors that depend on the cloud relay (myjudo.eu). Only added when cloud
+# credentials are configured — see async_setup_entry.
+CLOUD_SENSORS: tuple[JudoSensorDescription, ...] = (
+    JudoSensorDescription(
+        key="live_flow",
+        translation_key="live_flow",
+        device_class=SensorDeviceClass.VOLUME_FLOW_RATE,
+        native_unit_of_measurement=UnitOfVolumeFlowRate.LITERS_PER_HOUR,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:waves-arrow-right",
+        value_fn=lambda d: d.live_flow_l_per_h,
+    ),
+    JudoSensorDescription(
+        key="input_hardness",
+        translation_key="input_hardness",
+        native_unit_of_measurement="°dH",
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:water-plus",
+        value_fn=lambda d: d.input_hardness_dh,
+    ),
+    JudoSensorDescription(
+        key="regeneration_count",
+        translation_key="regeneration_count",
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        icon="mdi:water-sync",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda d: d.regeneration_count,
+    ),
+    JudoSensorDescription(
+        key="battery_backup",
+        translation_key="battery_backup",
+        device_class=SensorDeviceClass.BATTERY,
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda d: d.battery_backup_percent,
+    ),
+    JudoSensorDescription(
+        key="days_until_maintenance",
+        translation_key="days_until_maintenance",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        icon="mdi:account-wrench",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda d: d.days_until_maintenance,
+    ),
+    JudoSensorDescription(
+        key="status",
+        translation_key="status",
+        icon="mdi:information-outline",
+        value_fn=lambda d: d.status_text,
+    ),
+)
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     coordinator: JudoCoordinator = hass.data[DOMAIN][entry.entry_id]
+    descriptions: list[JudoSensorDescription] = list(SENSORS)
+    if coordinator.cloud is not None:
+        descriptions.extend(CLOUD_SENSORS)
     async_add_entities(
-        JudoSensor(coordinator, entry.entry_id, desc) for desc in SENSORS
+        JudoSensor(coordinator, entry.entry_id, desc) for desc in descriptions
     )
 
 

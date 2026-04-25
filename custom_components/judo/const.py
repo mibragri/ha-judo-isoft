@@ -8,6 +8,13 @@ DEFAULT_SCAN_INTERVAL = 300  # seconds
 MIN_API_GAP = 11.0  # seconds between API calls (firmware rate-limit)
 REQUEST_TIMEOUT = 15  # seconds
 
+# Optional cloud relay (myjudo.eu). Used to surface live values that the
+# local connectivity-module API does not expose (live flow, battery backup,
+# regeneration count). Disabled unless the user provides credentials.
+CONF_CLOUD_USER = "cloud_user"
+CONF_CLOUD_PASSWORD = "cloud_password"
+CLOUD_BASE_URL = "https://www.myjudo.eu"
+
 # REST registers (hex strings without leading 0x)
 REG_DEVICE_TYPE = "FF00"
 REG_DEVICE_NUMBER = "0600"

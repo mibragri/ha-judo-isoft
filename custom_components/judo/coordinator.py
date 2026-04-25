@@ -13,6 +13,7 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .api import JudoApi, JudoApiAuthError, JudoApiError
+from .cloud import JudoCloud, JudoCloudAuthError, JudoCloudError
 from .const import DEFAULT_SCAN_INTERVAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -42,6 +43,16 @@ class JudoData:
     daily_slots_l: list[int] | None = None  # 8 values, 3 hours each
     last_full_refresh: datetime | None = None
 
+    # Cloud-derived (only populated when myjudo.eu credentials are configured).
+    cloud_available: bool = False
+    live_flow_l_per_h: int | None = None
+    input_hardness_dh: int | None = None
+    regeneration_count: int | None = None
+    regeneration_active: bool | None = None
+    battery_backup_percent: int | None = None
+    days_until_maintenance: int | None = None
+    status_text: str | None = None
+
 
 class JudoCoordinator(DataUpdateCoordinator[JudoData]):
     """Centrally fetches all values with controlled throttling."""
@@ -53,6 +64,7 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
         hass: HomeAssistant,
         api: JudoApi,
         *,
+        cloud: JudoCloud | None = None,
         scan_interval: int = DEFAULT_SCAN_INTERVAL,
     ) -> None:
         super().__init__(
@@ -62,6 +74,7 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
             update_interval=timedelta(seconds=scan_interval),
         )
         self.api = api
+        self.cloud = cloud
         self._static_loaded = False
         self._static = JudoData()
 
@@ -127,6 +140,27 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
             raise UpdateFailed(f"auth error: {err}") from err
         except JudoApiError as err:
             raise UpdateFailed(str(err)) from err
+
+        if self.cloud is not None:
+            try:
+                cloud_state = await self.cloud.get_state()
+            except JudoCloudAuthError as err:
+                _LOGGER.warning("cloud auth failed: %s", err)
+            except JudoCloudError as err:
+                _LOGGER.debug("cloud unavailable: %s", err)
+            else:
+                data.cloud_available = True
+                data.live_flow_l_per_h = cloud_state.get("live_flow_l_per_h")
+                data.input_hardness_dh = cloud_state.get("input_hardness_dh")
+                data.regeneration_count = cloud_state.get("regeneration_count")
+                data.regeneration_active = cloud_state.get("regeneration_active")
+                data.battery_backup_percent = cloud_state.get(
+                    "battery_backup_percent"
+                )
+                data.days_until_maintenance = cloud_state.get(
+                    "days_until_maintenance"
+                )
+                data.status_text = cloud_state.get("status_text")
 
         data.last_full_refresh = datetime.now()
         return data

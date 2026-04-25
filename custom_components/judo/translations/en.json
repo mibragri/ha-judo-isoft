@@ -3,11 +3,13 @@
     "step": {
       "user": {
         "title": "JUDO connectivity module",
-        "description": "Connect to the JUDO connectivity module on your local network.",
+        "description": "Connect to the JUDO connectivity module on your local network. Cloud fields are optional — fill them in to expose live flow, regeneration count and battery-backup status.",
         "data": {
           "host": "IP address or hostname",
           "username": "Username",
-          "password": "Password"
+          "password": "Password",
+          "cloud_user": "myjudo.eu account (optional)",
+          "cloud_password": "myjudo.eu password (optional)"
         }
       },
       "reconfigure": {
@@ -15,13 +17,17 @@
         "data": {
           "host": "IP address or hostname",
           "username": "Username",
-          "password": "Password"
+          "password": "Password",
+          "cloud_user": "myjudo.eu account (optional)",
+          "cloud_password": "myjudo.eu password (optional)"
         }
       }
     },
     "error": {
       "cannot_connect": "Failed to connect",
-      "invalid_auth": "Invalid authentication"
+      "invalid_auth": "Invalid authentication",
+      "cloud_cannot_connect": "Could not reach myjudo.eu",
+      "cloud_invalid_auth": "myjudo.eu rejected the credentials"
     },
     "abort": {
       "already_configured": "Device is already configured."
@@ -38,7 +44,13 @@
       "operating_time": { "name": "Operating time" },
       "daily_water": { "name": "Daily water consumption" },
       "installation_date": { "name": "Installation date" },
-      "service_contact": { "name": "Service contact" }
+      "service_contact": { "name": "Service contact" },
+      "live_flow": { "name": "Live flow" },
+      "input_hardness": { "name": "Input water hardness" },
+      "regeneration_count": { "name": "Regenerations" },
+      "battery_backup": { "name": "Battery backup" },
+      "days_until_maintenance": { "name": "Days until maintenance" },
+      "status": { "name": "Status" }
     },
     "binary_sensor": {
       "connectivity": { "name": "Connected" }

@@ -6,7 +6,7 @@
 
 Home Assistant custom component for **JUDO water softeners** (i-soft, i-soft K, i-soft Pro, Softwell, …) over the **JUDO Connectivity Module** (P/N 2202271).
 
-> **100% local — no cloud account, no `myjudo.eu` login.** The integration talks directly to the connectivity module's REST API on your LAN/Wi-Fi.
+> **Local-first.** The integration talks directly to the connectivity module's REST API on your LAN/Wi-Fi. A handful of values that the local API doesn't expose (live flow, regeneration counter, battery-backup status, maintenance interval) can optionally be retrieved from the JUDO cloud relay if you provide your `myjudo.eu` credentials — but the core integration works fully offline.
 
 ## Features
 
@@ -18,6 +18,7 @@ Home Assistant custom component for **JUDO water softeners** (i-soft, i-soft K, 
 | **Actions** | Start regeneration (button) |
 | **Switches** | Leakage protection, Vacation mode |
 | **Diagnostic** | Installation date, device info (type, serial, software version) |
+| **Cloud (optional)** | Live flow (L/h), Input water hardness (°dH), Regeneration count, Battery-backup level, Days until maintenance, Status text |
 
 UI translations: **English** and **German**.
 
@@ -60,6 +61,19 @@ UI translations: **English** and **German**.
 
 If the module's IP changes (DHCP rotation), use the integration's **Reconfigure** option — no need to delete and re-add.
 
+### Optional: cloud relay (myjudo.eu)
+
+The two cloud fields in the form are optional. Leave them blank to run the integration fully offline. If you fill them in, the coordinator additionally polls `myjudo.eu` once per refresh cycle to surface six values that the local API does not expose:
+
+- **Live flow** (current water draw, L/h)
+- **Input water hardness** (°dH, raw value before softening)
+- **Regenerations** — total counter
+- **Battery backup** — level of the optional emergency battery module
+- **Days until maintenance**
+- **Status** — derived text (`normal`, `regenerating`, `valve closed`, `vacation`)
+
+Credentials are stored encrypted in Home Assistant's config entry, transmitted only over HTTPS, and only the MD5 hash of the password leaves your network (the cloud API itself accepts only the hash). Sessions auto-renew on token expiry.
+
 ## Connectivity module first-time setup
 
 If the module is brand new and not yet on your network:
@@ -99,6 +113,7 @@ For other models, extend the device-type mapping in `const.py: DEVICE_TYPES` —
 - [OStrama/judo_rest_api](https://github.com/OStrama/judo_rest_api) — Another HA integration with the most thorough register reverse-engineering. We cross-referenced our register layout and device-type table against this project. Key differences in our integration: working daily-statistics sensor, vacation-mode switch, more permissive plausibility checks for installation date.
 - [iobroker.judoisoft (arteck)](https://github.com/arteck/iobroker.judoisoft) — ioBroker adapter with detailed data converter and register documentation.
 - [iobroker forum script (Bert)](https://forum.iobroker.net/topic/78777/) — Community script with formulas confirmed by JUDO support.
+- [danielegger1/Judo-i-soft-save-plus-appdaemon](https://github.com/danielegger1/Judo-i-soft-save-plus-appdaemon) — appdaemon script using the `myjudo.eu` cloud relay; we ported its index map for the optional cloud sensors.
 
 ## Contributing
 

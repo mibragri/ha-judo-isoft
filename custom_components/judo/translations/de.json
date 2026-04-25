@@ -3,11 +3,13 @@
     "step": {
       "user": {
         "title": "JUDO Connectivity-Modul",
-        "description": "Verbindung zum JUDO Connectivity-Modul im lokalen Netzwerk herstellen.",
+        "description": "Verbindung zum JUDO Connectivity-Modul im lokalen Netzwerk herstellen. Die Cloud-Felder sind optional — wenn ausgefüllt, werden zusätzliche Live-Werte (Live-Durchfluss, Regenerationszähler, Notstromakku) angezeigt.",
         "data": {
           "host": "IP-Adresse oder Hostname",
           "username": "Benutzername",
-          "password": "Passwort"
+          "password": "Passwort",
+          "cloud_user": "myjudo.eu Benutzerkonto (optional)",
+          "cloud_password": "myjudo.eu Passwort (optional)"
         }
       },
       "reconfigure": {
@@ -15,13 +17,17 @@
         "data": {
           "host": "IP-Adresse oder Hostname",
           "username": "Benutzername",
-          "password": "Passwort"
+          "password": "Passwort",
+          "cloud_user": "myjudo.eu Benutzerkonto (optional)",
+          "cloud_password": "myjudo.eu Passwort (optional)"
         }
       }
     },
     "error": {
       "cannot_connect": "Verbindung fehlgeschlagen",
-      "invalid_auth": "Anmeldung fehlgeschlagen"
+      "invalid_auth": "Anmeldung fehlgeschlagen",
+      "cloud_cannot_connect": "myjudo.eu nicht erreichbar",
+      "cloud_invalid_auth": "myjudo.eu hat die Anmeldedaten abgelehnt"
     },
     "abort": {
       "already_configured": "Dieses Gerät ist bereits konfiguriert."
@@ -38,7 +44,13 @@
       "operating_time": { "name": "Betriebszeit" },
       "daily_water": { "name": "Tagesverbrauch" },
       "installation_date": { "name": "Inbetriebnahmedatum" },
-      "service_contact": { "name": "Service-Kontakt" }
+      "service_contact": { "name": "Service-Kontakt" },
+      "live_flow": { "name": "Aktueller Durchfluss" },
+      "input_hardness": { "name": "Eingangshärte" },
+      "regeneration_count": { "name": "Regenerationen" },
+      "battery_backup": { "name": "Notstrommodul" },
+      "days_until_maintenance": { "name": "Tage bis Wartung" },
+      "status": { "name": "Status" }
     },
     "binary_sensor": {
       "connectivity": { "name": "Verbunden" }

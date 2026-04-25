@@ -10,7 +10,8 @@ from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import JudoApi, JudoApiAuthError, JudoApiError
-from .const import DOMAIN
+from .cloud import JudoCloud
+from .const import CONF_CLOUD_PASSWORD, CONF_CLOUD_USER, DOMAIN
 from .coordinator import JudoCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -39,7 +40,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         password=entry.data[CONF_PASSWORD],
         session=session,
     )
-    coordinator = JudoCoordinator(hass, api)
+    cloud: JudoCloud | None = None
+    if entry.data.get(CONF_CLOUD_USER) and entry.data.get(CONF_CLOUD_PASSWORD):
+        cloud = JudoCloud(
+            username=entry.data[CONF_CLOUD_USER],
+            password=entry.data[CONF_CLOUD_PASSWORD],
+            session=session,
+        )
+    coordinator = JudoCoordinator(hass, api, cloud=cloud)
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
