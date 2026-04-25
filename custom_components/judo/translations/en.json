@@ -1,0 +1,51 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Judo connectivity module",
+        "description": "Connect to the Judo connectivity module.",
+        "data": {
+          "host": "IP address or hostname",
+          "username": "Username",
+          "password": "Password"
+        }
+      },
+      "reconfigure": {
+        "title": "Update connection",
+        "data": {
+          "host": "IP address or hostname",
+          "username": "Username",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication"
+    },
+    "abort": {
+      "already_configured": "Device is already configured."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "target_hardness": { "name": "Target water hardness" },
+      "salt_level": { "name": "Salt level" },
+      "total_water": { "name": "Total water" },
+      "soft_water": { "name": "Soft water" },
+      "operating_days": { "name": "Operating days" },
+      "daily_water": { "name": "Daily water consumption" },
+      "installation_date": { "name": "Installation date" }
+    },
+    "binary_sensor": {
+      "connectivity": { "name": "Connected" }
+    },
+    "button": {
+      "regeneration": { "name": "Start regeneration" }
+    },
+    "switch": {
+      "leakage_protection": { "name": "Leakage protection" },
+      "vacation_mode": { "name": "Vacation mode" }
+    }
+  }
+}

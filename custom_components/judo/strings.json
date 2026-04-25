@@ -1,0 +1,51 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Judo Connectivity-Modul",
+        "description": "Verbindung zum Connectivity-Modul herstellen.",
+        "data": {
+          "host": "IP-Adresse oder Hostname",
+          "username": "Benutzername",
+          "password": "Passwort"
+        }
+      },
+      "reconfigure": {
+        "title": "Verbindung anpassen",
+        "data": {
+          "host": "IP-Adresse oder Hostname",
+          "username": "Benutzername",
+          "password": "Passwort"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung fehlgeschlagen",
+      "invalid_auth": "Anmeldung fehlgeschlagen"
+    },
+    "abort": {
+      "already_configured": "Dieses Gerät ist bereits konfiguriert."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "target_hardness": { "name": "Wunschwasserhärte" },
+      "salt_level": { "name": "Salzvorrat" },
+      "total_water": { "name": "Gesamtwassermenge" },
+      "soft_water": { "name": "Weichwassermenge" },
+      "operating_days": { "name": "Betriebstage" },
+      "daily_water": { "name": "Tagesverbrauch" },
+      "installation_date": { "name": "Inbetriebnahmedatum" }
+    },
+    "binary_sensor": {
+      "connectivity": { "name": "Verbunden" }
+    },
+    "button": {
+      "regeneration": { "name": "Regeneration starten" }
+    },
+    "switch": {
+      "leakage_protection": { "name": "Leckageschutz" },
+      "vacation_mode": { "name": "Urlaubsmodus" }
+    }
+  }
+}
