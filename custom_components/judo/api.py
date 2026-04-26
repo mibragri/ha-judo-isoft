@@ -170,13 +170,12 @@ class JudoApi:
 
     async def get_total_water(self) -> float:
         data = await self._request("GET", REG_TOTAL_WATER)
-        # 4 LE bytes; divisor /1000 matches the JU-Control display unit "m³"
-        # (the device counter unit is effectively L; the App labels it as m³)
-        return self._hex_le_int(data) / 1000
+        # 4 LE bytes counting millilitres; /1e6 to get m³ (matches JU-Control).
+        return self._hex_le_int(data) / 1_000_000
 
     async def get_soft_water(self) -> float:
         data = await self._request("GET", REG_SOFT_WATER)
-        return self._hex_le_int(data) / 1000
+        return self._hex_le_int(data) / 1_000_000
 
     async def get_operating_time(self) -> dict[str, int]:
         data = await self._request("GET", REG_OPERATING_HOURS)
