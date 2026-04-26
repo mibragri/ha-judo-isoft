@@ -207,15 +207,18 @@ def _parse_state(payload: dict[str, Any]) -> dict[str, Any]:
             result["holiday_mode_raw"] = hm
 
     # Top-level status text derived from the above (best-effort).
-    # Holiday-mode codes per danielegger1: 0=off, 3=vacation mode 1,
-    # 5=vacation mode 2, 9=valve fully locked (vacation-lock variant).
-    holiday_raw = result.get("holiday_mode_raw")
+    # The byte at register 792 [38:40] encodes the active operating-mode on
+    # i-soft K SAFE+: 0=off, 3=leakage protection / limited usage (mode 1),
+    # 5=mode 2, 9=valve fully locked. On older i-soft SAFE+ models the same
+    # byte was labelled "vacation mode" — empirically on i-soft K SAFE+ it
+    # also reflects leakage protection, so we use a generic label.
+    mode_raw = result.get("holiday_mode_raw")
     if result.get("regeneration_active"):
         result["status_text"] = "regenerating"
-    elif holiday_raw == 9 or result.get("water_lock_active"):
+    elif mode_raw == 9 or result.get("water_lock_active"):
         result["status_text"] = "valve locked"
-    elif holiday_raw in (3, 5):
-        result["status_text"] = "vacation"
+    elif mode_raw in (3, 5):
+        result["status_text"] = "leakage protection"
     else:
         result["status_text"] = "normal"
 
