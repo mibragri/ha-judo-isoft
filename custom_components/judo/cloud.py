@@ -204,12 +204,15 @@ def _parse_state(payload: dict[str, Any]) -> dict[str, Any]:
         if hm is not None:
             result["holiday_mode_raw"] = hm
 
-    # Top-level status text derived from the above (best-effort)
-    if "regeneration_active" in result and result["regeneration_active"]:
+    # Top-level status text derived from the above (best-effort).
+    # Holiday-mode codes per danielegger1: 0=off, 3=vacation mode 1,
+    # 5=vacation mode 2, 9=valve fully locked (vacation-lock variant).
+    holiday_raw = result.get("holiday_mode_raw")
+    if result.get("regeneration_active"):
         result["status_text"] = "regenerating"
-    elif result.get("water_lock_active"):
-        result["status_text"] = "valve closed"
-    elif result.get("holiday_mode_raw"):
+    elif holiday_raw == 9 or result.get("water_lock_active"):
+        result["status_text"] = "valve locked"
+    elif holiday_raw in (3, 5):
         result["status_text"] = "vacation"
     else:
         result["status_text"] = "normal"

@@ -30,7 +30,8 @@
       "cloud_invalid_auth": "myjudo.eu rejected the credentials"
     },
     "abort": {
-      "already_configured": "Device is already configured."
+      "already_configured": "Device is already configured.",
+      "reconfigure_successful": "Re-configuration was successful — the integration will reload."
     }
   },
   "entity": {

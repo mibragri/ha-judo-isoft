@@ -30,7 +30,8 @@
       "cloud_invalid_auth": "myjudo.eu hat die Anmeldedaten abgelehnt"
     },
     "abort": {
-      "already_configured": "Dieses Gerät ist bereits konfiguriert."
+      "already_configured": "Dieses Gerät ist bereits konfiguriert.",
+      "reconfigure_successful": "Konfiguration erfolgreich aktualisiert — die Integration wird neu geladen."
     }
   },
   "entity": {
