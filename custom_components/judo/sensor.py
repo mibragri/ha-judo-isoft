@@ -31,6 +31,7 @@ from .coordinator import JudoCoordinator, JudoData
 @dataclass(kw_only=True, frozen=True)
 class JudoSensorDescription(SensorEntityDescription):
     value_fn: Callable[[JudoData], Any]
+    attrs_fn: Callable[[JudoData], dict[str, Any] | None] | None = None
 
 
 SENSORS: tuple[JudoSensorDescription, ...] = (
@@ -166,6 +167,7 @@ CLOUD_SENSORS: tuple[JudoSensorDescription, ...] = (
         translation_key="status",
         icon="mdi:information-outline",
         value_fn=lambda d: d.status_text,
+        attrs_fn=lambda d: d.cloud_status_attrs,
     ),
 )
 
@@ -204,3 +206,10 @@ class JudoSensor(CoordinatorEntity[JudoCoordinator], SensorEntity):
         if self.coordinator.data is None:
             return None
         return self.entity_description.value_fn(self.coordinator.data)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        fn = self.entity_description.attrs_fn
+        if fn is None or self.coordinator.data is None:
+            return None
+        return fn(self.coordinator.data)

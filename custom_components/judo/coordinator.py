@@ -52,6 +52,8 @@ class JudoData:
     battery_backup_percent: int | None = None
     days_until_maintenance: int | None = None
     status_text: str | None = None
+    # Raw debug values exposed as attributes on the status sensor.
+    cloud_status_attrs: dict[str, Any] | None = None
 
 
 class JudoCoordinator(DataUpdateCoordinator[JudoData]):
@@ -161,6 +163,17 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
                     "days_until_maintenance"
                 )
                 data.status_text = cloud_state.get("status_text")
+                data.cloud_status_attrs = {
+                    k: cloud_state.get(k)
+                    for k in (
+                        "holiday_mode_raw",
+                        "water_lock_raw",
+                        "water_lock_active",
+                        "regeneration_active",
+                        "index_792_hex",
+                    )
+                    if cloud_state.get(k) is not None
+                }
 
         data.last_full_refresh = datetime.now()
         return data

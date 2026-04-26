@@ -197,8 +197,10 @@ def _parse_state(payload: dict[str, Any]) -> dict[str, Any]:
     # Operating mode
     h = _index_data(payload, 792)
     if h is not None and len(h) >= 40:
+        result["index_792_hex"] = h
         wl = _le_int(h, 2, 4)
         if wl is not None:
+            result["water_lock_raw"] = wl
             result["water_lock_active"] = wl > 0
         hm = _le_int(h, 38, 40)
         if hm is not None:
