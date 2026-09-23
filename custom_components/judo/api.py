@@ -170,12 +170,17 @@ class JudoApi:
 
     async def get_total_water(self) -> float:
         data = await self._request("GET", REG_TOTAL_WATER)
-        # 4 LE bytes counting millilitres; /1e6 to get m³ (matches JU-Control).
-        return self._hex_le_int(data) / 1_000_000
+        # 4 LE bytes counting litres (not millilitres); /1e3 to get m³.
+        # Confirmed against OStrama/judo_rest_api's PARAMS_QBM_H (divider=1000)
+        # and cross-checked against real consumption via the JU-Control app CSV export.
+        return self._hex_le_int(data) / 1_000
 
     async def get_soft_water(self) -> float:
         data = await self._request("GET", REG_SOFT_WATER)
-        return self._hex_le_int(data) / 1_000_000
+        # 4 LE bytes counting litres (not millilitres); /1e3 to get m³.
+        # Confirmed against OStrama/judo_rest_api's PARAMS_QBM_H (divider=1000)
+        # and cross-checked against real consumption via the JU-Control app CSV export.
+        return self._hex_le_int(data) / 1_000
 
     async def get_operating_time(self) -> dict[str, int]:
         data = await self._request("GET", REG_OPERATING_HOURS)
