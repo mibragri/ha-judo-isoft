@@ -7,10 +7,12 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
+from homeassistant.util import dt as dt_util
 
 from .api import JudoApi, JudoApiAuthError, JudoApiError
 from .cloud import JudoCloud, JudoCloudAuthError, JudoCloudError
@@ -40,7 +42,6 @@ class JudoData:
     operating_days: int | None = None
     operating_text: str | None = None
     daily_total_l: int | None = None
-    daily_slots_l: list[int] | None = None  # 8 values, 3 hours each
     last_full_refresh: datetime | None = None
 
     # Cloud-derived (only populated when myjudo.eu credentials are configured).
@@ -65,6 +66,7 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
         self,
         hass: HomeAssistant,
         api: JudoApi,
+        entry_id: str,
         *,
         cloud: JudoCloud | None = None,
         scan_interval: int = DEFAULT_SCAN_INTERVAL,
@@ -79,6 +81,35 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
         self.cloud = cloud
         self._static_loaded = False
         self._static = JudoData()
+        self._day_store: Store[dict[str, Any]] = Store(
+            hass, 1, f"{DOMAIN}.{entry_id}.daily_baseline"
+        )
+        self._day_baseline: dict[str, Any] | None = None
+        self._day_baseline_loaded = False
+
+    async def _daily_water_l(self, total_m3: float) -> int:
+        """Return litres used since local midnight, derived from the total counter.
+
+        The device's day statistics (FB00) are only reliable for completed
+        days: for the current day the running 3-hour slot also shows up in
+        later slots, so summing them over-counts. The baseline is persisted
+        so a restart does not reset today's value.
+        """
+        if not self._day_baseline_loaded:
+            self._day_baseline = await self._day_store.async_load()
+            self._day_baseline_loaded = True
+        total_l = round(total_m3 * 1000)
+        today = dt_util.now().date().isoformat()
+        baseline = self._day_baseline
+        if (
+            baseline is None
+            or baseline.get("date") != today
+            or baseline.get("total_l", 0) > total_l  # counter reset
+        ):
+            baseline = {"date": today, "total_l": total_l}
+            self._day_baseline = baseline
+            await self._day_store.async_save(baseline)
+        return total_l - baseline["total_l"]
 
     async def _load_static(self) -> None:
         """Load static device info once on first refresh."""
@@ -135,9 +166,7 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
             data.operating_text = (
                 f"{op['days']}d {op['hours']}h {op['minutes']}min"
             )
-            stats = await self.api.get_daily_stats()
-            data.daily_total_l = stats.get("total")
-            data.daily_slots_l = stats.get("slots")
+            data.daily_total_l = await self._daily_water_l(data.total_water_m3)
         except JudoApiAuthError as err:
             raise UpdateFailed(f"auth error: {err}") from err
         except JudoApiError as err:
