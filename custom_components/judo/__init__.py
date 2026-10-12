@@ -47,7 +47,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             password=entry.data[CONF_CLOUD_PASSWORD],
             session=session,
         )
-    coordinator = JudoCoordinator(hass, api, cloud=cloud)
+    coordinator = JudoCoordinator(hass, api, entry.entry_id, cloud=cloud)
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     # Trigger first refresh in the background; do not block setup.
