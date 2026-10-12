@@ -16,6 +16,7 @@ from homeassistant.util import dt as dt_util
 
 from .api import JudoApi, JudoApiAuthError, JudoApiError
 from .cloud import JudoCloud, JudoCloudAuthError, JudoCloudError
+from .commissioning import days_in_service
 from .const import DEFAULT_SCAN_INTERVAL, DOMAIN
 from .daily import DayMeter, advance
 
@@ -44,6 +45,9 @@ class JudoData:
     operating_text: str | None = None
     daily_total_l: int | None = None
     daily_reset: datetime | None = None
+    # Set by the user, see CONF_COMMISSIONING_DATE.
+    commissioning_date: date | None = None
+    days_in_service: int | None = None
     last_full_refresh: datetime | None = None
 
     # Cloud-derived (only populated when myjudo.eu credentials are configured).
@@ -76,6 +80,7 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
         entry_id: str,
         *,
         cloud: JudoCloud | None = None,
+        commissioning_date: date | None = None,
         scan_interval: int = DEFAULT_SCAN_INTERVAL,
     ) -> None:
         super().__init__(
@@ -86,6 +91,7 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
         )
         self.api = api
         self.cloud = cloud
+        self.commissioning_date = commissioning_date
         self._static_loaded = False
         self._static = JudoData()
         self._day_store = day_store(hass, entry_id)
@@ -141,7 +147,12 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
             device_number=self._static.device_number,
             software_version=self._static.software_version,
             installation_date=self._static.installation_date,
+            commissioning_date=self.commissioning_date,
         )
+        if self.commissioning_date is not None:
+            data.days_in_service = days_in_service(
+                self.commissioning_date, dt_util.now().date()
+            )
         try:
             data.target_hardness = await self.api.get_target_hardness()
             salt = await self.api.get_salt()

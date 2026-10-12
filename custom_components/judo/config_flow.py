@@ -6,6 +6,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
+from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import JudoApi, JudoApiAuthError, JudoApiError
@@ -13,6 +14,7 @@ from .cloud import JudoCloud, JudoCloudAuthError, JudoCloudError
 from .const import (
     CONF_CLOUD_PASSWORD,
     CONF_CLOUD_USER,
+    CONF_COMMISSIONING_DATE,
     DEFAULT_PASSWORD,
     DEFAULT_USERNAME,
     DOMAIN,
@@ -36,6 +38,10 @@ def _user_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
             vol.Optional(
                 CONF_CLOUD_PASSWORD, default=d.get(CONF_CLOUD_PASSWORD, "")
             ): str,
+            vol.Optional(
+                CONF_COMMISSIONING_DATE,
+                description={"suggested_value": d.get(CONF_COMMISSIONING_DATE)},
+            ): selector.DateSelector(),
         }
     )
 
@@ -88,6 +94,8 @@ class JudoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if not user_input.get(CONF_CLOUD_USER):
                 user_input.pop(CONF_CLOUD_USER, None)
                 user_input.pop(CONF_CLOUD_PASSWORD, None)
+            if not user_input.get(CONF_COMMISSIONING_DATE):
+                user_input.pop(CONF_COMMISSIONING_DATE, None)
             err, device_number = await _validate(self.hass, user_input)
             if err:
                 errors["base"] = err
@@ -121,6 +129,8 @@ class JudoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if not user_input.get(CONF_CLOUD_USER):
                 user_input.pop(CONF_CLOUD_USER, None)
                 user_input.pop(CONF_CLOUD_PASSWORD, None)
+            if not user_input.get(CONF_COMMISSIONING_DATE):
+                user_input.pop(CONF_COMMISSIONING_DATE, None)
             err, _ = await _validate(self.hass, user_input)
             if err:
                 errors["base"] = err
@@ -130,6 +140,8 @@ class JudoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if CONF_CLOUD_USER not in user_input:
                     merged.pop(CONF_CLOUD_USER, None)
                     merged.pop(CONF_CLOUD_PASSWORD, None)
+                if CONF_COMMISSIONING_DATE not in user_input:
+                    merged.pop(CONF_COMMISSIONING_DATE, None)
                 return self.async_update_reload_and_abort(entry, data=merged)
         return self.async_show_form(
             step_id="reconfigure",

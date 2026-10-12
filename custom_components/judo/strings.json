@@ -7,7 +7,11 @@
         "data": {
           "host": "IP address or hostname",
           "username": "Username",
-          "password": "Password"
+          "password": "Password",
+          "commissioning_date": "Commissioning date (optional)"
+        },
+        "data_description": {
+          "commissioning_date": "The date your unit was installed. The device's own installation date is not reliable; with this date the integration shows the right one and counts the days in service."
         }
       },
       "reconfigure": {
@@ -15,7 +19,11 @@
         "data": {
           "host": "IP address or hostname",
           "username": "Username",
-          "password": "Password"
+          "password": "Password",
+          "commissioning_date": "Commissioning date (optional)"
+        },
+        "data_description": {
+          "commissioning_date": "The date your unit was installed. The device's own installation date is not reliable; with this date the integration shows the right one and counts the days in service."
         }
       }
     },
@@ -38,6 +46,7 @@
       "operating_time": { "name": "Operating time" },
       "daily_water": { "name": "Daily water consumption" },
       "installation_date": { "name": "Installation date" },
+      "days_in_service": { "name": "Days in service" },
       "service_contact": { "name": "Service contact" }
     },
     "binary_sensor": {

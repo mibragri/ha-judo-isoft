@@ -11,7 +11,13 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import JudoApi, JudoApiAuthError, JudoApiError
 from .cloud import JudoCloud
-from .const import CONF_CLOUD_PASSWORD, CONF_CLOUD_USER, DOMAIN
+from .commissioning import parse_date
+from .const import (
+    CONF_CLOUD_PASSWORD,
+    CONF_CLOUD_USER,
+    CONF_COMMISSIONING_DATE,
+    DOMAIN,
+)
 from .coordinator import JudoCoordinator, day_store
 
 _LOGGER = logging.getLogger(__name__)
@@ -47,7 +53,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             password=entry.data[CONF_CLOUD_PASSWORD],
             session=session,
         )
-    coordinator = JudoCoordinator(hass, api, entry.entry_id, cloud=cloud)
+    coordinator = JudoCoordinator(
+        hass,
+        api,
+        entry.entry_id,
+        cloud=cloud,
+        commissioning_date=parse_date(entry.data.get(CONF_COMMISSIONING_DATE)),
+    )
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     # Trigger first refresh in the background; do not block setup.

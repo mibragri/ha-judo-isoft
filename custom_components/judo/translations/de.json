@@ -9,7 +9,11 @@
           "username": "Benutzername",
           "password": "Passwort",
           "cloud_user": "myjudo.eu Benutzerkonto (optional)",
-          "cloud_password": "myjudo.eu Passwort (optional)"
+          "cloud_password": "myjudo.eu Passwort (optional)",
+          "commissioning_date": "Inbetriebnahmedatum (optional)"
+        },
+        "data_description": {
+          "commissioning_date": "Der Tag, an dem die Anlage eingebaut wurde. Das Datum aus dem Gerät ist nicht verlässlich; mit dieser Angabe zeigt die Integration das richtige Datum und zählt die Tage in Betrieb."
         }
       },
       "reconfigure": {
@@ -19,7 +23,11 @@
           "username": "Benutzername",
           "password": "Passwort",
           "cloud_user": "myjudo.eu Benutzerkonto (optional)",
-          "cloud_password": "myjudo.eu Passwort (optional)"
+          "cloud_password": "myjudo.eu Passwort (optional)",
+          "commissioning_date": "Inbetriebnahmedatum (optional)"
+        },
+        "data_description": {
+          "commissioning_date": "Der Tag, an dem die Anlage eingebaut wurde. Das Datum aus dem Gerät ist nicht verlässlich; mit dieser Angabe zeigt die Integration das richtige Datum und zählt die Tage in Betrieb."
         }
       }
     },
@@ -45,6 +53,7 @@
       "operating_time": { "name": "Betriebszeit" },
       "daily_water": { "name": "Tagesverbrauch" },
       "installation_date": { "name": "Inbetriebnahmedatum" },
+      "days_in_service": { "name": "Tage in Betrieb" },
       "service_contact": { "name": "Service-Kontakt" },
       "live_flow": { "name": "Aktueller Durchfluss" },
       "input_hardness": { "name": "Eingangshärte" },

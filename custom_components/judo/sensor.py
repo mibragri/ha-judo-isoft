@@ -117,7 +117,21 @@ SENSORS: tuple[JudoSensorDescription, ...] = (
         key="installation_date",
         translation_key="installation_date",
         device_class=SensorDeviceClass.DATE,
-        value_fn=lambda d: d.installation_date.date() if d.installation_date else None,
+        # The date the user entered wins over the device's own, unreliable one.
+        value_fn=lambda d: d.commissioning_date
+        or (d.installation_date.date() if d.installation_date else None),
+    ),
+)
+
+
+# Only added when the user has entered a commissioning date.
+COMMISSIONING_SENSORS: tuple[JudoSensorDescription, ...] = (
+    JudoSensorDescription(
+        key="days_in_service",
+        translation_key="days_in_service",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        value_fn=lambda d: d.days_in_service,
     ),
 )
 
@@ -184,6 +198,8 @@ async def async_setup_entry(
 ) -> None:
     coordinator: JudoCoordinator = hass.data[DOMAIN][entry.entry_id]
     descriptions: list[JudoSensorDescription] = list(SENSORS)
+    if coordinator.commissioning_date is not None:
+        descriptions.extend(COMMISSIONING_SENSORS)
     if coordinator.cloud is not None:
         descriptions.extend(CLOUD_SENSORS)
     async_add_entities(

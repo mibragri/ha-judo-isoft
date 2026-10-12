@@ -13,6 +13,8 @@ REQUEST_TIMEOUT = 15  # seconds
 # regeneration count). Disabled unless the user provides credentials.
 CONF_CLOUD_USER = "cloud_user"
 CONF_CLOUD_PASSWORD = "cloud_password"
+# Optional: the real commissioning date, because the device's own date is not reliable.
+CONF_COMMISSIONING_DATE = "commissioning_date"
 CLOUD_BASE_URL = "https://www.myjudo.eu"
 
 # REST registers (hex strings without leading 0x)
