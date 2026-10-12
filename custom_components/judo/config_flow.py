@@ -21,6 +21,15 @@ from .const import (
 )
 
 
+_CONNECTION_KEYS = (
+    CONF_HOST,
+    CONF_USERNAME,
+    CONF_PASSWORD,
+    CONF_CLOUD_USER,
+    CONF_CLOUD_PASSWORD,
+)
+
+
 def _user_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
     d = defaults or {}
     return vol.Schema(
@@ -131,7 +140,11 @@ class JudoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 user_input.pop(CONF_CLOUD_PASSWORD, None)
             if not user_input.get(CONF_COMMISSIONING_DATE):
                 user_input.pop(CONF_COMMISSIONING_DATE, None)
-            err, _ = await _validate(self.hass, user_input)
+            # The connection is only checked when its settings changed, so the
+            # commissioning date can be set while the module is unreachable.
+            err = None
+            if any(user_input.get(key) != entry.data.get(key) for key in _CONNECTION_KEYS):
+                err, _ = await _validate(self.hass, user_input)
             if err:
                 errors["base"] = err
             else:
