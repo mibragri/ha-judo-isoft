@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -32,6 +33,7 @@ from .coordinator import JudoCoordinator, JudoData
 class JudoSensorDescription(SensorEntityDescription):
     value_fn: Callable[[JudoData], Any]
     attrs_fn: Callable[[JudoData], dict[str, Any] | None] | None = None
+    last_reset_fn: Callable[[JudoData], datetime | None] | None = None
 
 
 SENSORS: tuple[JudoSensorDescription, ...] = (
@@ -105,8 +107,11 @@ SENSORS: tuple[JudoSensorDescription, ...] = (
         translation_key="daily_water",
         device_class=SensorDeviceClass.WATER,
         native_unit_of_measurement=UnitOfVolume.LITERS,
-        state_class=SensorStateClass.TOTAL_INCREASING,
+        # Counted from the total counter; last_reset marks the start of the day,
+        # so the first value after midnight is added to the statistics in full.
+        state_class=SensorStateClass.TOTAL,
         value_fn=lambda d: d.daily_total_l,
+        last_reset_fn=lambda d: d.daily_reset,
     ),
     JudoSensorDescription(
         key="installation_date",
@@ -206,6 +211,13 @@ class JudoSensor(CoordinatorEntity[JudoCoordinator], SensorEntity):
         if self.coordinator.data is None:
             return None
         return self.entity_description.value_fn(self.coordinator.data)
+
+    @property
+    def last_reset(self) -> datetime | None:
+        fn = self.entity_description.last_reset_fn
+        if fn is None or self.coordinator.data is None:
+            return None
+        return fn(self.coordinator.data)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:

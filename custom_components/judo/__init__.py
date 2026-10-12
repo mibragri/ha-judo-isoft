@@ -12,7 +12,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .api import JudoApi, JudoApiAuthError, JudoApiError
 from .cloud import JudoCloud
 from .const import CONF_CLOUD_PASSWORD, CONF_CLOUD_USER, DOMAIN
-from .coordinator import JudoCoordinator
+from .coordinator import JudoCoordinator, day_store
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -62,3 +62,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if unloaded:
         hass.data[DOMAIN].pop(entry.entry_id, None)
     return unloaded
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Remove the stored daily count along with the entry."""
+    await day_store(hass, entry.entry_id).async_remove()

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -17,6 +17,7 @@ from homeassistant.util import dt as dt_util
 from .api import JudoApi, JudoApiAuthError, JudoApiError
 from .cloud import JudoCloud, JudoCloudAuthError, JudoCloudError
 from .const import DEFAULT_SCAN_INTERVAL, DOMAIN
+from .daily import DayMeter, advance
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,6 +43,7 @@ class JudoData:
     operating_days: int | None = None
     operating_text: str | None = None
     daily_total_l: int | None = None
+    daily_reset: datetime | None = None
     last_full_refresh: datetime | None = None
 
     # Cloud-derived (only populated when myjudo.eu credentials are configured).
@@ -55,6 +57,11 @@ class JudoData:
     status_text: str | None = None
     # Raw debug values exposed as attributes on the status sensor.
     cloud_status_attrs: dict[str, Any] | None = None
+
+
+def day_store(hass: HomeAssistant, entry_id: str) -> Store[dict[str, Any]]:
+    """Storage for today's count, so a restart does not reset the value."""
+    return Store(hass, 1, f"{DOMAIN}.{entry_id}.daily_baseline")
 
 
 class JudoCoordinator(DataUpdateCoordinator[JudoData]):
@@ -81,35 +88,26 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
         self.cloud = cloud
         self._static_loaded = False
         self._static = JudoData()
-        self._day_store: Store[dict[str, Any]] = Store(
-            hass, 1, f"{DOMAIN}.{entry_id}.daily_baseline"
+        self._day_store = day_store(hass, entry_id)
+        self._day_meter: DayMeter | None = None
+        self._day_loaded = False
+
+    async def _count_day(self, total_m3: float) -> DayMeter:
+        """Feed a counter reading into today's count and store it when it changed."""
+        if not self._day_loaded:
+            try:
+                self._day_meter = DayMeter.from_stored(await self._day_store.async_load())
+            except Exception:  # noqa: BLE001 - an unreadable file must not take every sensor down
+                _LOGGER.warning("daily count could not be loaded, starting over", exc_info=True)
+            self._day_loaded = True
+        now = dt_util.now()
+        meter = advance(
+            self._day_meter, now.date().isoformat(), round(total_m3 * 1000), now.isoformat()
         )
-        self._day_baseline: dict[str, Any] | None = None
-        self._day_baseline_loaded = False
-
-    async def _daily_water_l(self, total_m3: float) -> int:
-        """Return litres used since local midnight, derived from the total counter.
-
-        The device's day statistics (FB00) are only reliable for completed
-        days: for the current day the running 3-hour slot also shows up in
-        later slots, so summing them over-counts. The baseline is persisted
-        so a restart does not reset today's value.
-        """
-        if not self._day_baseline_loaded:
-            self._day_baseline = await self._day_store.async_load()
-            self._day_baseline_loaded = True
-        total_l = round(total_m3 * 1000)
-        today = dt_util.now().date().isoformat()
-        baseline = self._day_baseline
-        if (
-            baseline is None
-            or baseline.get("date") != today
-            or baseline.get("total_l", 0) > total_l  # counter reset
-        ):
-            baseline = {"date": today, "total_l": total_l}
-            self._day_baseline = baseline
-            await self._day_store.async_save(baseline)
-        return total_l - baseline["total_l"]
+        if meter != self._day_meter:
+            self._day_meter = meter
+            await self._day_store.async_save(meter.as_stored())
+        return meter
 
     async def _load_static(self) -> None:
         """Load static device info once on first refresh."""
@@ -158,6 +156,13 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
             except JudoApiError:
                 data.service_contact = None
             data.total_water_m3 = await self.api.get_total_water()
+            meter = await self._count_day(data.total_water_m3)
+            data.daily_total_l = meter.litres
+            data.daily_reset = (
+                dt_util.parse_datetime(meter.since)
+                if meter.since
+                else dt_util.start_of_local_day(date.fromisoformat(meter.date))
+            )
             data.soft_water_m3 = await self.api.get_soft_water()
             op = await self.api.get_operating_time()
             data.operating_minutes = op["minutes"]
@@ -166,7 +171,6 @@ class JudoCoordinator(DataUpdateCoordinator[JudoData]):
             data.operating_text = (
                 f"{op['days']}d {op['hours']}h {op['minutes']}min"
             )
-            data.daily_total_l = await self._daily_water_l(data.total_water_m3)
         except JudoApiAuthError as err:
             raise UpdateFailed(f"auth error: {err}") from err
         except JudoApiError as err:
