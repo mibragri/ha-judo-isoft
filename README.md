@@ -125,6 +125,10 @@ Issues and pull requests welcome. Useful sources for further register exploratio
 - The repos above
 - KNX-User-Forum thread on [JUDO i-soft](https://knx-user-forum.de/forum/projektforen/edomi/1453632-lbs19002090-judo-i-soft-wasserenth%C3%A4rtungsanlage)
 
+## Trademarks
+
+This is an independent community project. It is not affiliated with, endorsed by or supported by JUDO Wasseraufbereitung GmbH. "JUDO" and the product names mentioned here are trademarks of their respective owners and are used only to say which devices the integration works with. The integration icon is original artwork made for this project (drawn by `tools/brand_icon.py`), not the manufacturer's logo.
+
 ## License
 
 [MIT](LICENSE)
